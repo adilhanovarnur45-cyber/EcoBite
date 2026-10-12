@@ -12,6 +12,7 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
@@ -138,31 +139,74 @@ const C = {
   mono: "'JetBrains Mono', monospace",
 };
 
-const FOOD_ITEMS = [
-  { id:1, name:"Chicken Rice", category:"Main", prepared:40, sold:28, waste:12, wasteKg:7.2, cost:920, price:2600, trend:"high", color:"accent", demand:"High" },
-  { id:2, name:"Beshbarmak", category:"Kazakh", prepared:32, sold:27, waste:5, wasteKg:3.5, cost:1250, price:3500, trend:"medium", color:"amber", demand:"High" },
-  { id:3, name:"Caesar Salad", category:"Salad", prepared:30, sold:25, waste:5, wasteKg:2.1, cost:780, price:2400, trend:"medium", color:"blue", demand:"Medium" },
-  { id:4, name:"Baursak", category:"Bakery", prepared:50, sold:42, waste:8, wasteKg:1.8, cost:320, price:1500, trend:"low", color:"purple", demand:"High" },
-  { id:5, name:"Soup of the Day", category:"Soup", prepared:35, sold:31, waste:4, wasteKg:2.4, cost:540, price:1900, trend:"low", color:"accent", demand:"High" },
-  { id:6, name:"Beef Plov", category:"Main", prepared:38, sold:30, waste:8, wasteKg:4.6, cost:1100, price:2900, trend:"medium", color:"amber", demand:"Medium" },
-  { id:7, name:"Lagman", category:"Main", prepared:34, sold:26, waste:8, wasteKg:4.1, cost:980, price:2800, trend:"medium", color:"blue", demand:"Medium" },
-  { id:8, name:"Manty", category:"Kazakh", prepared:45, sold:38, waste:7, wasteKg:3.8, cost:1050, price:3200, trend:"high", color:"purple", demand:"High" },
-  { id:9, name:"Fresh Vegetable Salad", category:"Salad", prepared:28, sold:22, waste:6, wasteKg:1.9, cost:620, price:1800, trend:"medium", color:"accent", demand:"Medium" },
-  { id:10, name:"Creamy Mushroom Soup", category:"Soup", prepared:24, sold:20, waste:4, wasteKg:2.0, cost:690, price:2100, trend:"low", color:"blue", demand:"Medium" },
-  { id:11, name:"Pasta Alfredo", category:"Main", prepared:36, sold:30, waste:6, wasteKg:3.0, cost:760, price:2500, trend:"medium", color:"amber", demand:"High" },
-  { id:12, name:"Apple Pie", category:"Dessert", prepared:22, sold:17, waste:5, wasteKg:1.5, cost:480, price:1700, trend:"low", color:"purple", demand:"Low" },
-  { id:13, name:"Cheesecake", category:"Dessert", prepared:20, sold:16, waste:4, wasteKg:1.4, cost:610, price:2200, trend:"low", color:"blue", demand:"Low" },
-  { id:14, name:"Fruit Bowl", category:"Healthy", prepared:26, sold:21, waste:5, wasteKg:1.7, cost:560, price:1900, trend:"medium", color:"accent", demand:"Medium" },
-  { id:15, name:"Beef Burger", category:"Fast Food", prepared:42, sold:35, waste:7, wasteKg:3.7, cost:870, price:2700, trend:"high", color:"amber", demand:"High" },
-];
+const SUPABASE_URL="https://kdvgiqjgyxbvfkpwvcur.supabase.co";
+const SUPABASE_KEY="sb_publishable_Atdg808TyHyom3987ouvwQ_SlPJLs-1";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const CAFE_ID=1;
+const REASONS={Unsold:"UNSOLD",Expired:"EXPIRED",Overproduction:"OVERPRODUCTION",Spoiled:"SPOILED","Preparation Error":"PREPARATION_ERROR",Other:"OTHER"};
+const REASON_LABEL=Object.fromEntries(Object.entries(REASONS).map(([k,v])=>[v,k]));
 
-const INITIAL_LOGS = [
-  { id:1, item:"Chicken Rice", amount:7.2, reason:"Overproduction", time:"12:40", staff:"Aruzhan" },
-  { id:2, item:"Beshbarmak", amount:3.5, reason:"Leftover", time:"14:15", staff:"Aruzhan" },
-  { id:3, item:"Caesar Salad", amount:2.1, reason:"Expired", time:"16:05", staff:"Dias" },
-];
+const ymd=(d)=>new Date(d).toLocaleDateString("sv-SE");
+const sum=(a,f)=>a.reduce((t,x)=>t+Number(f(x)||0),0);
+const fmtTime=(t)=>new Date(t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+const fmtDate=(d)=>d?new Date(d+"T00:00:00").toLocaleDateString("en",{month:"short",day:"2-digit"}):"—";
+const daysLeft=(d)=>d?Math.ceil((new Date(d+"T00:00:00")-new Date(ymd(new Date())+"T00:00:00"))/864e5):999;
+const pct=(a,b)=>b>0?`${a>=b?"+":"-"}${Math.abs(Math.round((a-b)/b*100))}%`:undefined;
+let FOOD_ITEMS=[];
+const maxKg=(l=FOOD_ITEMS)=>Math.max(...l.map(x=>x.wasteKg),0.1);
+const foodName=(id)=>(FOOD_ITEMS.find(f=>f.id===id)||{}).name||"Item";
+const byName=(n)=>FOOD_ITEMS.find(x=>x.name===n)||FOOD_ITEMS[0];
 
-const DEMAND = [24, 31, 28, 35, 29, 38, 42, 36, 44, 40, 48, 43, 51, 46];
+async function loadAll(){
+  const since=ymd(Date.now()-30*864e5);
+  const r=await Promise.all([
+    sb.from("food_items").select("*").eq("is_active",true).order("item_id"),
+    sb.from("production_records").select("*").gte("production_date",since).order("created_at",{ascending:false}),
+    sb.from("waste_logs").select("*").gte("waste_date",since).order("created_at",{ascending:false}),
+    sb.from("orders").select("order_id,order_date,user_id,order_items(item_id,quantity,price_at_order)").gte("order_date",since+"T00:00:00").neq("status","CANCELLED").order("order_date",{ascending:false}),
+    sb.from("inventory_items").select("*").order("inventory_item_id"),
+    sb.from("users").select("*").order("user_id"),
+  ]);
+  const bad=r.find(x=>x.error); if(bad) throw bad.error;
+  return {foods:r[0].data,prod:r[1].data,waste:r[2].data,orders:r[3].data,inv:r[4].data,users:r[5].data};
+}
+
+function derive(d,days=14){
+  const t=ymd(new Date()), y=ymd(Date.now()-864e5), since=ymd(Date.now()-(days-1)*864e5);
+  const sales=d.orders.flatMap(o=>o.order_items.map(i=>({...i,day:ymd(o.order_date)})));
+  const P=d.prod.filter(r=>r.production_date>=since), W=d.waste.filter(r=>r.waste_date>=since), S=sales.filter(x=>x.day>=since);
+  const n=Math.max(1,new Set(P.map(r=>r.production_date)).size);
+  const cost=Object.fromEntries(d.foods.map(f=>[f.item_id,Number(f.cost_per_portion)]));
+  const items=d.foods.map(f=>{
+    const prep=sum(P.filter(r=>r.item_id===f.item_id),r=>r.portions_prepared);
+    const sold=sum(S.filter(x=>x.item_id===f.item_id),x=>x.quantity);
+    return {id:f.item_id,name:f.name,category:f.category,cost:cost[f.item_id],price:Number(f.price),
+      prepared:Math.round(prep/n),sold:Math.round(sold/n),waste:Math.max(0,Math.round((prep-sold)/n)),
+      wasteKg:+(sum(W.filter(r=>r.item_id===f.item_id),r=>r.weight_kg)/n).toFixed(1)};
+  });
+  const lossOf=(r)=>Number(r.quantity_portions)>0?Number(r.quantity_portions)*(cost[r.item_id]||0):Number(r.weight_kg)*920;
+  const pDay=(k)=>d.prod.filter(r=>r.production_date===k), wDay=(k)=>d.waste.filter(r=>r.waste_date===k), sDay=(k)=>sales.filter(x=>x.day===k);
+  const tp=sum(pDay(t),r=>r.portions_prepared), yp=sum(pDay(y),r=>r.portions_prepared);
+  const ts=sum(sDay(t),x=>x.quantity), ys=sum(sDay(y),x=>x.quantity);
+  const tw=sum(wDay(t),r=>r.weight_kg), yw=sum(wDay(y),r=>r.weight_kg);
+  const pkg=sum(pDay(t),r=>r.batch_weight_kg);
+  const trend=Array.from({length:14},(_,i)=>+sum(wDay(ymd(Date.now()-(13-i)*864e5)),r=>r.weight_kg).toFixed(1));
+  const a=sum(trend.slice(7),x=>x), b=sum(trend.slice(0,7),x=>x);
+  const prepTot=sum(P,r=>r.portions_prepared), soldTot=sum(S,x=>x.quantity);
+  const rate=prepTot>0?Math.max(0,(prepTot-soldTot)/prepTot*100):0;
+  const byReason={}; W.forEach(r=>{byReason[r.reason]=(byReason[r.reason]||0)+Number(r.weight_kg)});
+  const totKg=sum(Object.values(byReason),x=>x)||1;
+  const cols=[C.red,C.amber,C.blue,C.purple];
+  const reasonShare=Object.entries(byReason).sort((x,z)=>z[1]-x[1]).slice(0,4).map(([k,v],i)=>[REASON_LABEL[k]||k,Math.round(v/totKg*100),cols[i]]);
+  return {items,records:P.length+W.length+d.orders.filter(o=>ymd(o.order_date)>=since).length,
+    periodWasteKg:sum(W,r=>r.weight_kg),periodLoss:sum(W,lossOf),
+    stats:{prepared:tp,sold:ts,wasteKg:tw,preparedKg:pkg,wasteRate:pkg>0?(tw/pkg*100).toFixed(1):"0.0",
+      revenue:sum(sDay(t),x=>x.quantity*x.price_at_order),lossToday:sum(wDay(t),lossOf),
+      dPrep:pct(tp,yp),dSold:pct(ts,ys),dWaste:pct(tw,yw),trend,
+      trendDelta:b>0?`${a<=b?"↓":"↑"} ${Math.abs(Math.round((a-b)/b*100))}% vs previous 7 days`:"Last 14 days",
+      reasonShare,expiring:d.inv.filter(x=>daysLeft(x.expiry_date)<=2).map(x=>x.item_name),
+      goal:rate>0?Math.min(100,Math.round(10/rate*100)):100,green:Math.max(0,Math.min(100,Math.round(100-rate*2)))}};
+}
 
 function Icon({ name, size=18, color="currentColor", strokeWidth=2 }) {
   return <i data-lucide={name} style={{width:size,height:size,color,strokeWidth}}></i>;
@@ -306,6 +350,9 @@ function AuthScreen({onAuth}) {
   const [lampOn,setLampOn]=useState(true);
   const [pulling,setPulling]=useState(false);
   const [dark,setDark]=useState(false);
+  const [role,setRole]=useState("kitchen_staff");
+  const [info,setInfo]=useState("");
+  const [busy,setBusy]=useState(false);
 
   const pullLamp=()=>{
     setPulling(true);
@@ -317,13 +364,23 @@ function AuthScreen({onAuth}) {
     }
   };
 
-  const submit=(e)=>{
+  const submit=async(e)=>{
     e.preventDefault();
     if(mode==="register" && !name.trim()) return setError("Please enter your full name.");
     if(!email.trim() || !email.includes("@")) return setError("Please enter a valid email address.");
-    if(!password.trim() || password.length<5) return setError("Password must be at least 5 characters.");
-    setError("");
-    onAuth({name:name.trim()||"EcoBite User",email});
+    if(!password || password.length<6) return setError("Password must be at least 6 characters.");
+    setError("");setInfo("");setBusy(true);
+    try{
+      if(mode==="register"){
+        const {data,error}=await sb.auth.signUp({email:email.trim(),password,options:{data:{full_name:name.trim(),role}}});
+        if(error) throw error;
+        if(!data.session){setInfo("Account created. Check your email to confirm it, then sign in.");setMode("login");}
+      } else {
+        const {error}=await sb.auth.signInWithPassword({email:email.trim(),password});
+        if(error) throw error;
+      }
+    }catch(err){setError(err.message);}
+    setBusy(false);
   };
 
   return (
@@ -386,7 +443,8 @@ function AuthScreen({onAuth}) {
 
               <form onSubmit={submit} className="flex flex-col gap-4">
                 {mode==="register" && (
-                  <Field label="Full Name" value={name} onChange={setName} placeholder="Arnur Adilhanov" icon="user"/>
+                  <><Field label="Full Name" value={name} onChange={setName} placeholder="Arnur Adilhanov" icon="user"/>
+                  <div><label style={{fontSize:11.5,color:C.muted}}>Account type</label><select value={role} onChange={e=>setRole(e.target.value)} className="w-full mt-1.5 px-3.5 rounded-xl outline-none" style={{height:46,background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:13}}><option value="kitchen_staff">Kitchen Staff</option><option value="manager">Manager</option></select></div></>
                 )}
                 <Field label="Email Address" value={email} onChange={setEmail} placeholder="manager@EcoBite.kz" type="email" icon="mail"/>
                 <Field label="Password" value={password} onChange={setPassword} placeholder="••••••••" type="password" icon="lock"/>
@@ -397,8 +455,9 @@ function AuthScreen({onAuth}) {
                   </div>
                 )}
 
-                <Button type="submit" className="w-full mt-1" icon={mode==="register"?"arrow-right":"log-in"}>
-                  {mode==="register"?"Create EcoBite Account":"Sign In"}
+                {info && <div className="px-3 py-2.5 rounded-xl" style={{background:"rgba(143,209,79,.08)",border:"1px solid rgba(143,209,79,.25)",color:C.accent,fontSize:12}}>{info}</div>}
+                <Button type="submit" disabled={busy} className="w-full mt-1" icon={mode==="register"?"arrow-right":"log-in"}>
+                  {busy?"Please wait...":mode==="register"?"Create EcoBite Account":"Sign In"}
                 </Button>
               </form>
 
@@ -416,7 +475,7 @@ function AuthScreen({onAuth}) {
             </div>
 
             <div className="text-center mt-5" style={{fontSize:10.5,color:C.muted}}>
-              Demo frontend · Data will later connect to PostgreSQL through a backend
+              Secured by Supabase Auth · Data is stored in PostgreSQL
             </div>
           </div>
         </div>
@@ -441,7 +500,7 @@ function Field({label,value,onChange,placeholder,type="text",icon}) {
 
 /* ---------------- ROLE SELECT ---------------- */
 
-function RoleSelect({onPick,user}) {
+function RoleSelect({onPick,user,allowed}) {
   const roles=[
     {id:"kitchen",label:"Kitchen Staff",desc:"Record production, sales, waste and daily food measurements.",icon:"chef-hat",tag:"OPERATIONS"},
     {id:"manager",label:"Manager",desc:"Monitor analytics, financial impact, predictions and goals.",icon:"layout-dashboard",tag:"DECISIONS"},
@@ -459,7 +518,7 @@ function RoleSelect({onPick,user}) {
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
-          {roles.map(r=>(
+          {roles.filter(r=>!allowed||allowed.includes(r.id)).map(r=>(
             <button key={r.id} onClick={()=>onPick(r.id)} onMouseEnter={()=>setHover(r.id)} onMouseLeave={()=>setHover(null)}
               className="text-left rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
               style={{
@@ -501,14 +560,15 @@ const NAV=[
   {id:"recommendation",label:"Smart Recommendation",icon:"brain-circuit"},
   {id:"environment",label:"Environmental Impact",icon:"globe-2"},
   {id:"analytics",label:"Reports & Analytics",icon:"bar-chart-3"},
+  {id:"admin",label:"Users",icon:"users"},
 ];
 
 function Sidebar({active,setActive,role,onLogout,onChangeRole}) {
   const visible=role==="kitchen"
     ? NAV.filter(x=>["dashboard","production","waste","inventory","recommendation","analytics"].includes(x.id))
     : role==="admin"
-    ? NAV.filter(x=>["dashboard","inventory","analytics"].includes(x.id))
-    : NAV;
+    ? NAV.filter(x=>["dashboard","inventory","analytics","admin"].includes(x.id))
+    : NAV.filter(x=>x.id!=="admin");
 
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col p-4 sticky top-0 h-screen" style={{background:C.bg,borderRight:`1px solid ${C.border}`}}>
@@ -550,7 +610,7 @@ function Sidebar({active,setActive,role,onLogout,onChangeRole}) {
 
 function MobileNav({active,setActive,role}) {
   const ids=role==="manager"?["dashboard","production","waste","recommendation","analytics"]:
-    role==="admin"?["dashboard","inventory","analytics"]:
+    role==="admin"?["dashboard","inventory","analytics","admin"]:
     ["dashboard","production","waste","recommendation","analytics"];
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-2 py-2" style={{background:"rgba(7,16,11,.95)",backdropFilter:"blur(15px)",borderTop:`1px solid ${C.border}`}}>
@@ -598,6 +658,9 @@ function TopBar({user,role,onChangeRole,onLogout}) {
 function Dashboard({stats,logs,setPage}) {
   const wasteRate=((stats.wasteKg/((stats.preparedKg||100)))*100).toFixed(1);
   const avoided=Math.max(0,100-stats.wasteRate);
+  const top=[...FOOD_ITEMS].sort((a,b)=>(b.waste/(b.prepared||1))-(a.waste/(a.prepared||1)))[0]||{name:"—",prepared:0,sold:0,waste:0,wasteKg:0};
+  const recTop=Math.round(top.sold*1.08);
+  const redKg=top.prepared>top.sold?top.wasteKg*Math.max(0,top.prepared-recTop)/(top.prepared-top.sold):0;
   return (
     <div className="page-enter">
       <SectionTitle eyebrow="Today" title="Food Intelligence Dashboard"
@@ -605,9 +668,9 @@ function Dashboard({stats,logs,setPage}) {
         action={<Button icon="plus" onClick={()=>setPage("production")}>Record Food</Button>}/>
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3.5">
-        <StatCard icon="chef-hat" label="Prepared Today" value={`${stats.prepared} portions`} sub="+6.4%" accent={C.accent}/>
-        <StatCard icon="shopping-bag" label="Sold Today" value={`${stats.sold} portions`} sub="+4.1%" accent={C.amber}/>
-        <StatCard icon="trash-2" label="Food Waste" value={`${stats.wasteKg.toFixed(1)} kg`} sub="-12.8%" accent={C.red} onClick={()=>setPage("waste")}/>
+        <StatCard icon="chef-hat" label="Prepared Today" value={`${stats.prepared} portions`} sub={stats.dPrep} accent={C.accent}/>
+        <StatCard icon="shopping-bag" label="Sold Today" value={`${stats.sold} portions`} sub={stats.dSold} accent={C.amber}/>
+        <StatCard icon="trash-2" label="Food Waste" value={`${stats.wasteKg.toFixed(1)} kg`} sub={stats.dWaste} accent={C.red} onClick={()=>setPage("waste")}/>
         <StatCard icon="trending-down" label="Waste Rate" value={`${stats.wasteRate}%`} sub="target < 10%" accent={C.blue}/>
       </div>
 
@@ -618,9 +681,9 @@ function Dashboard({stats,logs,setPage}) {
               <div style={{fontFamily:C.heading,fontWeight:600,fontSize:15}}>14-Day Waste Trend</div>
               <div style={{fontSize:11,color:C.muted,marginTop:3}}>Estimated total food waste per day</div>
             </div>
-            <div className="px-2.5 py-1.5 rounded-lg" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:10}}>↓ 18% vs previous period</div>
+            <div className="px-2.5 py-1.5 rounded-lg" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:10}}>{stats.trendDelta}</div>
           </div>
-          <MiniChart/>
+          <MiniChart values={stats.trend}/>
         </div>
 
         <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
@@ -633,11 +696,11 @@ function Dashboard({stats,logs,setPage}) {
           </div>
           <div className="mt-5 p-4 rounded-xl" style={{background:C.raised,border:`1px solid ${C.border}`}}>
             <div style={{fontSize:13,lineHeight:1.65}}>
-              <b style={{color:C.accent}}>Chicken Rice</b> has the highest waste rate today.
-              The system suggests preparing <b>32–33 portions</b> tomorrow instead of 40.
+              <b style={{color:C.accent}}>{top.name}</b> has the highest waste rate recently.
+              The system suggests preparing <b>{recTop} portions</b> tomorrow instead of {top.prepared}.
             </div>
             <div className="flex items-center gap-2 mt-4" style={{fontSize:10.5,color:C.muted}}>
-              <Icon name="sparkles" size={13} color={C.accent}/> Estimated reduction: <b style={{color:C.accent}}>~2.4 kg waste/day</b>
+              <Icon name="sparkles" size={13} color={C.accent}/> Estimated reduction: <b style={{color:C.accent}}>~{redKg.toFixed(1)} kg waste/day</b>
             </div>
           </div>
           <Button className="w-full mt-3" variant="subtle" icon="arrow-right" onClick={()=>setPage("recommendation")}>Open Recommendation</Button>
@@ -645,9 +708,9 @@ function Dashboard({stats,logs,setPage}) {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mt-4">
-        <ImpactCard icon="coins" title="Financial Impact" value={`${(stats.wasteKg*920).toLocaleString()} ₸`} label="estimated daily food cost lost" accent={C.amber}/>
+        <ImpactCard icon="coins" title="Financial Impact" value={`${Math.round(stats.lossToday).toLocaleString()} ₸`} label="estimated daily food cost lost" accent={C.amber}/>
         <ImpactCard icon="cloud-off" title="Environmental Impact" value={`${(stats.wasteKg*2.4).toFixed(1)} kg CO₂e`} label="illustrative avoided footprint" accent={C.blue}/>
-        <ImpactCard icon="target" title="Reduction Goal" value="72%" label="monthly goal progress" accent={C.accent} progress={72}/>
+        <ImpactCard icon="target" title="Reduction Goal" value={`${stats.goal}%`} label="goal: waste rate under 10%" accent={C.accent} progress={stats.goal}/>
       </div>
 
       <div className="p-5 rounded-2xl mt-4" style={{background:C.surface,border:`1px solid ${C.border}`}}>
@@ -659,13 +722,13 @@ function Dashboard({stats,logs,setPage}) {
           <button onClick={()=>setPage("analytics")} className="cursor-pointer" style={{fontSize:11,color:C.accent}}>View report →</button>
         </div>
         <div className="flex flex-col gap-3">
-          {FOOD_ITEMS.slice(0,4).map((f,i)=>(
+          {[...FOOD_ITEMS].sort((a,b)=>b.wasteKg-a.wasteKg).slice(0,4).map((f,i)=>(
             <div key={f.id} className="flex items-center gap-3">
               <div className="w-7 text-center" style={{fontFamily:C.mono,fontSize:10,color:C.muted}}>0{i+1}</div>
               <div className="flex-1">
                 <div className="flex justify-between mb-1.5"><span style={{fontSize:12.5,fontWeight:600}}>{f.name}</span><span style={{fontFamily:C.mono,fontSize:10,color:C.red}}>{f.wasteKg} kg</span></div>
                 <div className="h-1.5 rounded-full overflow-hidden" style={{background:C.raised}}>
-                  <div className="h-full rounded-full progress-fill" style={{width:`${Math.min(100,f.wasteKg/7.2*100)}%`,background:C.red}}></div>
+                  <div className="h-full rounded-full progress-fill" style={{width:`${Math.min(100,f.wasteKg/maxKg()*100)}%`,background:C.red}}></div>
                 </div>
               </div>
               <span className="w-12 text-right" style={{fontFamily:C.mono,fontSize:10,color:C.muted}}>{Math.round(f.waste/f.prepared*100)}%</span>
@@ -679,14 +742,14 @@ function Dashboard({stats,logs,setPage}) {
           <div className="flex items-center justify-between"><div><div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Smart Alerts</div><div style={{fontSize:11,color:C.muted,marginTop:3}}>Issues that need attention today</div></div><span className="px-2 py-1 rounded-lg" style={{background:"rgba(226,88,79,.08)",color:C.red,fontSize:9}}>3 active</span></div>
           <div className="flex flex-col gap-3 mt-5">
             {[
-              ["triangle-alert","Waste Risk","Chicken Rice is above the safe production range.",C.red,"recommendation"],
-              ["clock-3","Expiry Alert","Chicken Breast and Cream should be used first.",C.amber,"inventory"],
+              ["triangle-alert","Waste Risk",`${top.name} is above the safe production range.`,C.red,"recommendation"],
+              ["clock-3","Expiry Alert",`${stats.expiring.slice(0,3).join(", ")||"Nothing"} should be used first.`,C.amber,"inventory"],
               ["trending-up","Waste Increase","Lunch-period waste is trending above the weekly average.",C.blue,"analytics"]
             ].map(([ic,t,d,c,p])=><button key={t} onClick={()=>setPage(p)} className="text-left p-3 rounded-xl cursor-pointer" style={{background:C.raised,border:`1px solid ${C.border}`}}><div className="flex gap-3"><Icon name={ic} size={16} color={c}/><div><div style={{fontSize:11,fontWeight:700}}>{t}</div><div style={{fontSize:9.5,color:C.muted,lineHeight:1.5,marginTop:2}}>{d}</div></div></div></button>)}
           </div>
         </div>
         <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
-          <div className="flex items-center justify-between"><div><div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Menu Performance Matrix</div><div style={{fontSize:11,color:C.muted,marginTop:3}}>Sales vs waste — decide what to keep, optimize or reduce</div></div><span className="px-2 py-1 rounded-lg" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:9}}>15 items</span></div>
+          <div className="flex items-center justify-between"><div><div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Menu Performance Matrix</div><div style={{fontSize:11,color:C.muted,marginTop:3}}>Sales vs waste — decide what to keep, optimize or reduce</div></div><span className="px-2 py-1 rounded-lg" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:9}}>{FOOD_ITEMS.length} items</span></div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-5">
             {[["Keep","High sales · Low waste",C.accent,"check-circle"],["Optimize","High sales · High waste",C.amber,"sliders-horizontal"],["Review","Low sales · Low waste",C.blue,"search"],["Reduce","Low sales · High waste",C.red,"arrow-down-right"]].map(([t,d,c,ic])=><div key={t} className="p-3 rounded-xl" style={{background:C.raised,border:`1px solid ${C.border}`}}><Icon name={ic} size={15} color={c}/><div style={{fontSize:10.5,fontWeight:700,marginTop:7}}>{t}</div><div style={{fontSize:8.5,color:C.muted,lineHeight:1.4,marginTop:2}}>{d}</div></div>)}
           </div>
@@ -697,9 +760,8 @@ function Dashboard({stats,logs,setPage}) {
   );
 }
 
-function MiniChart() {
-  const values=[7.4,7.1,6.9,6.4,6.7,6.1,5.8,6.2,5.4,5.6,5.0,4.9,4.6,4.2];
-  const max=Math.max(...values);
+function MiniChart({values}) {
+  const max=Math.max(...values,0.1);
   return (
     <div className="h-44 flex items-end gap-2">
       {values.map((v,i)=>(
@@ -728,24 +790,20 @@ function ImpactCard({icon,title,value,label,accent,progress}) {
 
 /* ---------------- PRODUCTION ---------------- */
 
-function Production({stats,setStats,toast}) {
+function Production({data,profile,reload,toast}) {
   const [item,setItem]=useState("Chicken Rice");
   const [qty,setQty]=useState("");
   const [weight,setWeight]=useState("");
   const [note,setNote]=useState("");
-  const [records,setRecords]=useState([
-    {id:1,item:"Chicken Rice",qty:40,weight:24,time:"09:20"},
-    {id:2,item:"Beshbarmak",qty:32,weight:19,time:"09:45"},
-    {id:3,item:"Caesar Salad",qty:30,weight:12,time:"10:05"},
-  ]);
+  const records=data.prod.filter(r=>r.production_date===ymd(new Date())).map(r=>({id:r.production_id,item:foodName(r.item_id),qty:r.portions_prepared,weight:Number(r.batch_weight_kg),time:fmtTime(r.created_at)}));
 
-  const add=()=>{
+  const add=async()=>{
     if(!qty || Number(qty)<=0) return;
-    const q=Number(qty);
-    setRecords([{id:Date.now(),item,qty:q,weight:Number(weight)||0,time:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})},...records]);
-    setStats(s=>({...s,prepared:s.prepared+q}));
+    const {error}=await sb.from("production_records").insert({cafe_id:CAFE_ID,item_id:byName(item).id,recorded_by:profile.user_id,production_date:ymd(new Date()),portions_prepared:Number(qty),batch_weight_kg:Number(weight)||0,notes:note||null});
+    if(error) return toast("Error: "+error.message);
     setQty("");setWeight("");setNote("");
-    toast("Production batch recorded successfully.");
+    await reload();
+    toast("Production batch saved to database.");
   };
 
   return (
@@ -792,23 +850,19 @@ function Production({stats,setStats,toast}) {
 
 /* ---------------- SALES ---------------- */
 
-function Sales({stats,setStats,toast}) {
+function Sales({stats,data,profile,reload,toast}) {
   const [item,setItem]=useState("Chicken Rice");
   const [qty,setQty]=useState("");
   const [price,setPrice]=useState(2600);
-  const [records,setRecords]=useState([
-    {id:1,item:"Chicken Rice",qty:28,revenue:72800,time:"12:55"},
-    {id:2,item:"Beshbarmak",qty:27,revenue:94500,time:"13:40"},
-    {id:3,item:"Caesar Salad",qty:25,revenue:60000,time:"15:20"},
-  ]);
+  const records=data.orders.flatMap(o=>ymd(o.order_date)!==ymd(new Date())?[]:o.order_items.map(i=>({id:o.order_id+"-"+i.item_id,item:foodName(i.item_id),qty:i.quantity,revenue:i.quantity*i.price_at_order,time:fmtTime(o.order_date)})));
 
-  const add=()=>{
+  const add=async()=>{
     if(!qty || Number(qty)<=0) return;
-    const q=Number(qty);
-    setRecords([{id:Date.now(),item,qty:q,revenue:q*Number(price),time:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})},...records]);
-    setStats(s=>({...s,sold:s.sold+q}));
+    const {error}=await sb.rpc("record_sale",{p_item_id:byName(item).id,p_quantity:Number(qty),p_unit_price:Number(price)});
+    if(error) return toast("Error: "+error.message);
     setQty("");
-    toast("Sales record added.");
+    await reload();
+    toast("Sale saved to database.");
   };
 
   return (
@@ -816,15 +870,15 @@ function Sales({stats,setStats,toast}) {
       <SectionTitle eyebrow="Operations" title="Sales Tracking" description="Compare actual sales with production to identify unsold and overproduced food."/>
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3.5 mb-4">
         <StatCard icon="shopping-bag" label="Sold Today" value={`${stats.sold}`} accent={C.accent}/>
-        <StatCard icon="coins" label="Revenue" value={`${(stats.sold*2500).toLocaleString()} ₸`} accent={C.amber}/>
+        <StatCard icon="coins" label="Revenue" value={`${Math.round(stats.revenue).toLocaleString()} ₸`} accent={C.amber}/>
         <StatCard icon="package-x" label="Unsold Portions" value={`${Math.max(0,stats.prepared-stats.sold)}`} accent={C.red}/>
-        <StatCard icon="percent" label="Sell-through" value={`${Math.min(100,Math.round(stats.sold/stats.prepared*100))}%`} accent={C.blue}/>
+        <StatCard icon="percent" label="Sell-through" value={`${(stats.prepared?Math.min(100,Math.round(stats.sold/stats.prepared*100)):0)}%`} accent={C.blue}/>
       </div>
       <div className="grid xl:grid-cols-[.75fr_1.25fr] gap-4">
         <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div className="flex items-center gap-2 mb-5"><Icon name="shopping-cart" size={18} color={C.accent}/><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Register Sales</h2></div>
           <div className="flex flex-col gap-4">
-            <SelectField label="Food Item" value={item} onChange={setItem} options={FOOD_ITEMS.map(x=>x.name)}/>
+            <SelectField label="Food Item" value={item} onChange={v=>{setItem(v);setPrice(byName(v).price)}} options={FOOD_ITEMS.map(x=>x.name)}/>
             <InputField label="Quantity Sold" value={qty} onChange={setQty} placeholder="e.g. 28" type="number"/>
             <InputField label="Selling Price / Portion (₸)" value={price} onChange={setPrice} placeholder="2600" type="number"/>
             <Button onClick={add} icon="check">Record Sale</Button>
@@ -845,21 +899,23 @@ function Sales({stats,setStats,toast}) {
 
 /* ---------------- WASTE ---------------- */
 
-function WasteLog({stats,setStats,logs,setLogs,toast}) {
+function WasteLog({stats,data,profile,reload,toast}) {
   const [item,setItem]=useState("Chicken Rice");
   const [amount,setAmount]=useState("");
   const [reason,setReason]=useState("Overproduction");
   const [stage,setStage]=useState("After service");
+  const [portions,setPortions]=useState("");
   const [note,setNote]=useState("");
 
-  const add=()=>{
+  const logs=data.waste.slice(0,12).map(r=>({id:r.log_id,item:foodName(r.item_id),amount:Number(r.weight_kg),reason:REASON_LABEL[r.reason]||r.reason,time:r.waste_date===ymd(new Date())?fmtTime(r.created_at):fmtDate(r.waste_date),stage:(r.waste_description||"").split(" — ")[0]||"—"}));
+
+  const add=async()=>{
     if(!amount || Number(amount)<=0) return;
-    const a=Number(amount);
-    const log={id:Date.now(),item,amount:a,reason,time:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}),staff:"Current user",stage,note};
-    setLogs([log,...logs]);
-    setStats(s=>({...s,wasteKg:s.wasteKg+a,wasteRate:Number(((s.wasteKg+a)/Math.max(1,s.preparedKg))*100).toFixed(1)}));
-    setAmount("");setNote("");
-    toast("Waste entry saved. Analytics updated.");
+    const {error}=await sb.from("waste_logs").insert({cafe_id:CAFE_ID,item_id:byName(item).id,recorded_by:profile.user_id,waste_date:ymd(new Date()),quantity_portions:Number(portions)||0,weight_kg:Number(amount),reason:REASONS[reason],waste_description:stage+(note?" — "+note:"")});
+    if(error) return toast("Error: "+error.message);
+    setAmount("");setNote("");setPortions("");
+    await reload();
+    toast("Waste entry saved to database.");
   };
 
   return (
@@ -872,7 +928,8 @@ function WasteLog({stats,setStats,logs,setLogs,toast}) {
           <div className="flex flex-col gap-4">
             <SelectField label="Food Item" value={item} onChange={setItem} options={FOOD_ITEMS.map(x=>x.name)}/>
             <InputField label="Waste Weight (kg)" value={amount} onChange={setAmount} placeholder="e.g. 2.4" type="number"/>
-            <SelectField label="Reason" value={reason} onChange={setReason} options={["Overproduction","Expired","Spoiled","Burned","Preparation Waste","Customer Leftover","Damaged"]}/>
+            <InputField label="Portions wasted (optional)" value={portions} onChange={setPortions} placeholder="e.g. 5" type="number"/>
+            <SelectField label="Reason" value={reason} onChange={setReason} options={Object.keys(REASONS)}/>
             <SelectField label="Stage" value={stage} onChange={setStage} options={["Preparation","Before service","After service","End of day","Storage"]}/>
             <InputField label="Note" value={note} onChange={setNote} placeholder="Optional explanation..."/>
             <Button variant="danger" onClick={add} icon="trash-2">Log Waste Entry</Button>
@@ -899,28 +956,18 @@ function WasteLog({stats,setStats,logs,setLogs,toast}) {
 
 /* ---------------- INVENTORY ---------------- */
 
-function Inventory({toast}) {
-  const [items,setItems]=useState([
-    {name:"Rice",category:"Grain",stock:18,unit:"kg",min:10,expiry:"Sep 18",status:"Good"},
-    {name:"Chicken Breast",category:"Protein",stock:7.5,unit:"kg",min:9,expiry:"Sep 16",status:"Low"},
-    {name:"Beef",category:"Protein",stock:14,unit:"kg",min:8,expiry:"Sep 20",status:"Good"},
-    {name:"Carrot",category:"Vegetable",stock:11,unit:"kg",min:5,expiry:"Sep 19",status:"Good"},
-    {name:"Potato",category:"Vegetable",stock:24,unit:"kg",min:12,expiry:"Sep 24",status:"Good"},
-    {name:"Onion",category:"Vegetable",stock:13,unit:"kg",min:6,expiry:"Sep 22",status:"Good"},
-    {name:"Tomato",category:"Vegetable",stock:6.5,unit:"kg",min:7,expiry:"Sep 17",status:"Low"},
-    {name:"Eggs",category:"Protein",stock:38,unit:"pcs",min:24,expiry:"Sep 17",status:"Good"},
-    {name:"Cream",category:"Dairy",stock:3.2,unit:"L",min:4,expiry:"Sep 16",status:"Low"},
-    {name:"Flour",category:"Bakery",stock:25,unit:"kg",min:12,expiry:"Oct 04",status:"Good"},
-    {name:"Cooking Oil",category:"Pantry",stock:8,unit:"L",min:5,expiry:"Nov 12",status:"Good"},
-    {name:"Cheese",category:"Dairy",stock:4.8,unit:"kg",min:5,expiry:"Sep 19",status:"Low"},
-  ]);
+function Inventory({data,reload,toast}) {
+  const items=data.inv.map(x=>({id:x.inventory_item_id,name:x.item_name,category:x.category||"Other",stock:Number(x.quantity),unit:x.unit==="piece"?"pcs":x.unit,min:Number(x.minimum_quantity),expiry:x.expiry_date,status:Number(x.quantity)<Number(x.minimum_quantity)?"Low":"Good"}));
   const [query,setQuery]=useState("");
   const [category,setCategory]=useState("All");
   const categories=["All",...new Set(items.map(x=>x.category))];
 
   const filtered=items.filter(x=>x.name.toLowerCase().includes(query.toLowerCase()) && (category==="All" || x.category===category));
-  const restock=(name)=>{
-    setItems(items.map(x=>x.name===name?{...x,stock:x.min*2,status:"Good"}:x));
+  const restock=async(name)=>{
+    const x=items.find(i=>i.name===name);
+    const {error}=await sb.from("inventory_items").update({quantity:x.min*2,last_updated:new Date().toISOString()}).eq("inventory_item_id",x.id);
+    if(error) return toast("Error: "+error.message);
+    await reload();
     toast(`${name} stock updated.`);
   };
 
@@ -930,7 +977,7 @@ function Inventory({toast}) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
         <StatCard icon="package" label="Tracked Items" value={`${items.length}`} accent={C.accent}/>
         <StatCard icon="package-minus" label="Low Stock" value={`${items.filter(x=>x.status==="Low").length}`} accent={C.red}/>
-        <StatCard icon="clock-3" label="Expiring Soon" value={`${items.filter(x=>["Sep 16","Sep 17"].includes(x.expiry)).length}`} accent={C.amber}/>
+        <StatCard icon="clock-3" label="Expiring Soon" value={`${items.filter(x=>daysLeft(x.expiry)<=2).length}`} accent={C.amber}/>
         <StatCard icon="recycle" label="FEFO Status" value="Active" accent={C.blue}/>
       </div>
       <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
@@ -943,7 +990,7 @@ function Inventory({toast}) {
             <div key={x.name} className="p-4 rounded-xl" style={{background:C.raised,border:`1px solid ${x.status==="Low"?"rgba(226,88,79,.25)":C.border}`}}>
               <div className="flex justify-between"><div><div style={{fontSize:12,fontWeight:700}}>{x.name}</div><div style={{fontSize:9,color:C.muted}}>{x.category}</div></div>
                 <span className="px-2 py-1 rounded-lg" style={{fontSize:8,color:x.status==="Low"?C.red:C.accent,background:x.status==="Low"?"rgba(226,88,79,.08)":"rgba(143,209,79,.07)"}}>{x.status}</span></div>
-              <div className="mt-4 flex items-end justify-between"><div><span style={{fontFamily:C.mono,fontSize:20,fontWeight:700}}>{x.stock}</span> <span style={{fontSize:10,color:C.muted}}>{x.unit}</span></div><div className="text-right"><div style={{fontSize:9,color:C.muted}}>Expiry</div><div style={{fontFamily:C.mono,fontSize:10}}>{x.expiry}</div></div></div>
+              <div className="mt-4 flex items-end justify-between"><div><span style={{fontFamily:C.mono,fontSize:20,fontWeight:700}}>{x.stock}</span> <span style={{fontSize:10,color:C.muted}}>{x.unit}</span></div><div className="text-right"><div style={{fontSize:9,color:C.muted}}>Expiry</div><div style={{fontFamily:C.mono,fontSize:10}}>{fmtDate(x.expiry)}</div></div></div>
               <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{background:"#0C140F"}}><div className="h-full rounded-full" style={{width:`${Math.min(100,x.stock/(x.min*2)*100)}%`,background:x.status==="Low"?C.red:C.accent}}></div></div>
               {x.status==="Low" && <button onClick={()=>restock(x.name)} className="mt-3 w-full py-2 rounded-lg cursor-pointer" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:10,fontWeight:600}}>Mark Restocked</button>}
             </div>
@@ -956,7 +1003,7 @@ function Inventory({toast}) {
 
 /* ---------------- RECOMMENDATION ---------------- */
 
-function Recommendation({stats,toast}) {
+function Recommendation({stats,profile,toast}) {
   const [scenario,setScenario]=useState(10);
   const [selected,setSelected]=useState("Chicken Rice");
   const [applied,setApplied]=useState(false);
@@ -975,10 +1022,13 @@ function Recommendation({stats,toast}) {
     `A small safety buffer is kept above recent demand: ${recommended} portions`,
     "Similar production patterns are used to avoid repeating overproduction"
   ];
-  const applyScenario=()=>{
+  const saveReco=async(portions)=>{
+    const {error}=await sb.from("recommendations").insert({cafe_id:CAFE_ID,item_id:item.id,created_by:profile.user_id,suggested_portions:portions,expected_waste_portions:Math.max(0,portions-item.sold),expected_savings:Math.max(0,Math.round((item.prepared-portions)*item.cost)),explanation:reasonLines.join(". "),status:"APPLIED"});
+    if(error) return toast("Error: "+error.message);
     setApplied(true);
-    toast(`${item.name}: ${Math.max(1,Math.round(item.prepared*(1-scenario/100)))}-portion plan saved for review.`);
+    toast(`${item.name}: ${portions}-portion plan saved to database.`);
   };
+  const applyScenario=()=>saveReco(Math.max(1,Math.round(item.prepared*(1-scenario/100))));
   return (
     <div className="page-enter">
       <SectionTitle eyebrow="Intelligence" title="Smart Recommendation" description="Turn historical production and sales into a practical plan for tomorrow."
@@ -1006,8 +1056,8 @@ function Recommendation({stats,toast}) {
             <div className="flex items-center gap-2"><Icon name="help-circle" size={16} color={C.blue}/><span style={{fontFamily:C.heading,fontSize:12.5,fontWeight:700}}>Why this recommendation?</span></div>
             <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 mt-3">{reasonLines.map((x,i)=><div key={i} className="flex gap-2" style={{fontSize:10.5,color:C.muted,lineHeight:1.5}}><span style={{color:C.blue}}>•</span><span>{x}</span></div>)}</div>
           </div>
-          <Button className="w-full mt-4" onClick={()=>{toast("Recommendation accepted for tomorrow's plan.");setApplied(true)}} icon="check-circle">Accept Recommendation</Button>
-          {applied && <div className="mt-3 px-3 py-2.5 rounded-xl flex items-center gap-2" style={{background:"rgba(143,209,79,.07)",border:`1px solid ${C.accentDim}`,fontSize:10,color:C.accent}}><Icon name="check-circle-2" size={14}/> Plan marked for tomorrow. Backend will save it after PostgreSQL integration.</div>}
+          <Button className="w-full mt-4" onClick={()=>saveReco(recommended)} icon="check-circle">Accept Recommendation</Button>
+          {applied && <div className="mt-3 px-3 py-2.5 rounded-xl flex items-center gap-2" style={{background:"rgba(143,209,79,.07)",border:`1px solid ${C.accentDim}`,fontSize:10,color:C.accent}}><Icon name="check-circle-2" size={14}/> Plan saved to the database for tomorrow.</div>}
         </div>
 
         <div className="p-6 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
@@ -1052,13 +1102,13 @@ function Environment({stats}) {
       <div className="grid md:grid-cols-3 gap-4">
         <ImpactCard icon="cloud" title="Estimated CO₂e" value={`${co2.toFixed(1)} kg`} label="illustrative daily footprint" accent={C.blue}/>
         <ImpactCard icon="droplets" title="Water Equivalent" value={`${Math.round(water).toLocaleString()} L`} label="illustrative water footprint" accent={C.blue}/>
-        <ImpactCard icon="leaf" title="Green Score" value="86 / 100" label="current operational score" accent={C.accent} progress={86}/>
+        <ImpactCard icon="leaf" title="Green Score" value={`${stats.green} / 100`} label="current operational score" accent={C.accent} progress={stats.green}/>
       </div>
       <div className="grid xl:grid-cols-2 gap-4 mt-4">
         <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Waste → Impact Breakdown</div>
           <div className="flex flex-col gap-4 mt-5">
-            {[["Overproduction",48,C.red],["Expired",22,C.amber],["Preparation Waste",17,C.blue],["Customer Leftover",13,C.purple]].map(([x,v,c])=><div key={x}><div className="flex justify-between mb-1.5" style={{fontSize:10.5}}><span>{x}</span><span style={{fontFamily:C.mono,color:C.muted}}>{v}%</span></div><div className="h-2 rounded-full" style={{background:C.raised}}><div className="h-full rounded-full" style={{width:`${v}%`,background:c}}></div></div></div>)}
+            {stats.reasonShare.map(([x,v,c])=><div key={x}><div className="flex justify-between mb-1.5" style={{fontSize:10.5}}><span>{x}</span><span style={{fontFamily:C.mono,color:C.muted}}>{v}%</span></div><div className="h-2 rounded-full" style={{background:C.raised}}><div className="h-full rounded-full" style={{width:`${v}%`,background:c}}></div></div></div>)}
           </div>
         </div>
         <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
@@ -1079,35 +1129,35 @@ function Environment({stats}) {
 
 /* ---------------- ANALYTICS ---------------- */
 
-function Analytics({stats}) {
+function Analytics({stats,data}) {
   const [period,setPeriod]=useState("14 days");
-  const totalPrepared=FOOD_ITEMS.reduce((s,x)=>s+x.prepared,0);
-  const totalWaste=FOOD_ITEMS.reduce((s,x)=>s+x.wasteKg,0);
+  const D=derive(data,parseInt(period));
+  const topItem=[...D.items].sort((a,b)=>b.wasteKg-a.wasteKg)[0];
   return (
     <div className="page-enter">
       <SectionTitle eyebrow="Decision Center" title="Reports & Analytics" description="Use historical data to understand patterns, losses and improvement opportunities."
         action={<select value={period} onChange={e=>setPeriod(e.target.value)} className="px-3 py-2 rounded-xl outline-none" style={{background:C.surface,border:`1px solid ${C.border}`,color:C.text,fontSize:11}}><option>7 days</option><option>14 days</option><option>30 days</option></select>}/>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <StatCard icon="database" label="Records Analyzed" value="1,248" sub="+84" accent={C.accent}/>
-        <StatCard icon="trash-2" label="Waste This Period" value={`${(totalWaste*5.4).toFixed(1)} kg`} sub="-18%" accent={C.red}/>
-        <StatCard icon="coins" label="Estimated Loss" value={`${Math.round(totalWaste*5.4*920).toLocaleString()} ₸`} sub="-14%" accent={C.amber}/>
-        <StatCard icon="target" label="Goal Progress" value="72%" sub="+9%" accent={C.blue}/>
+        <StatCard icon="database" label="Records Analyzed" value={D.records.toLocaleString()} accent={C.accent}/>
+        <StatCard icon="trash-2" label="Waste This Period" value={`${D.periodWasteKg.toFixed(1)} kg`} accent={C.red}/>
+        <StatCard icon="coins" label="Estimated Loss" value={`${Math.round(D.periodLoss).toLocaleString()} ₸`} accent={C.amber}/>
+        <StatCard icon="target" label="Goal Progress" value={`${D.stats.goal}%`} accent={C.blue}/>
       </div>
       <div className="grid xl:grid-cols-[1.25fr_.75fr] gap-4 mt-4">
         <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
-          <div className="mb-5"><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Waste by Food Item</h2><p style={{fontSize:11,color:C.muted}}>Kilograms recorded in the selected period</p></div>
+          <div className="mb-5"><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Waste by Food Item</h2><p style={{fontSize:11,color:C.muted}}>Average kg per day in the selected period</p></div>
           <div className="flex flex-col gap-4">
-            {FOOD_ITEMS.map(f=><div key={f.id} className="flex items-center gap-3"><div className="w-28 shrink-0" style={{fontSize:10.5}}>{f.name}</div><div className="flex-1 h-7 rounded-lg overflow-hidden relative" style={{background:C.raised}}><div className="h-full rounded-lg" style={{width:`${f.wasteKg/7.2*100}%`,background:"rgba(226,88,79,.72)"}}></div><span className="absolute right-2 top-1/2 -translate-y-1/2" style={{fontFamily:C.mono,fontSize:9}}>{f.wasteKg} kg</span></div></div>)}
+            {D.items.map(f=><div key={f.id} className="flex items-center gap-3"><div className="w-28 shrink-0" style={{fontSize:10.5}}>{f.name}</div><div className="flex-1 h-7 rounded-lg overflow-hidden relative" style={{background:C.raised}}><div className="h-full rounded-lg" style={{width:`${f.wasteKg/maxKg(D.items)*100}%`,background:"rgba(226,88,79,.72)"}}></div><span className="absolute right-2 top-1/2 -translate-y-1/2" style={{fontFamily:C.mono,fontSize:9}}>{f.wasteKg} kg</span></div></div>)}
           </div>
         </div>
         <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Waste Reasons</div>
-          <div className="mt-6 flex justify-center"><Donut/></div>
-          <div className="grid grid-cols-2 gap-2 mt-5">{[["Overproduction",48,C.red],["Expired",22,C.amber],["Prep Waste",17,C.blue],["Other",13,C.purple]].map(([t,v,c])=><div key={t} className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{background:c}}></span><span style={{fontSize:9,color:C.muted}}>{t}</span><span className="ml-auto" style={{fontFamily:C.mono,fontSize:9}}>{v}%</span></div>)}</div>
+          <div className="mt-6 flex justify-center"><Donut parts={D.stats.reasonShare}/></div>
+          <div className="grid grid-cols-2 gap-2 mt-5">{D.stats.reasonShare.map(([t,v,c])=><div key={t} className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{background:c}}></span><span style={{fontSize:9,color:C.muted}}>{t}</span><span className="ml-auto" style={{fontFamily:C.mono,fontSize:9}}>{v}%</span></div>)}</div>
         </div>
       </div>
       <div className="grid md:grid-cols-3 gap-4 mt-4">
-        <Insight title="Best opportunity" text="Chicken Rice contributes the largest share of avoidable waste. Reduce tomorrow's batch first." icon="target"/>
+        <Insight title="Best opportunity" text={`${topItem?.name||"—"} contributes the largest share of avoidable waste. Reduce tomorrow's batch first.`} icon="target"/>
         <Insight title="Pattern detected" text="Waste increases after the lunch peak. End-of-service batch sizing should be reviewed." icon="activity"/>
         <Insight title="Financial signal" text="Small daily production changes can reduce repeated ingredient and labor losses." icon="coins"/>
       </div>
@@ -1115,8 +1165,10 @@ function Analytics({stats}) {
   );
 }
 
-function Donut() {
-  return <div className="w-36 h-36 rounded-full relative flex items-center justify-center" style={{background:"conic-gradient(#E2584F 0 48%, #E0A83E 48% 70%, #5DADE2 70% 87%, #A78BFA 87% 100%)"}}><div className="w-24 h-24 rounded-full flex flex-col items-center justify-center" style={{background:C.surface}}><span style={{fontFamily:C.mono,fontSize:18,fontWeight:700}}>100%</span><span style={{fontSize:8,color:C.muted}}>classified</span></div></div>;
+function Donut({parts}) {
+  let acc=0; const stops=parts.map(([,v,c])=>{const t=`${c} ${acc}% ${acc+v}%`;acc+=v;return t;});
+  const bg=stops.length?`conic-gradient(${stops.join(", ")}${acc<100?`, ${C.raised} ${acc}% 100%`:""})`:C.raised;
+  return <div className="w-36 h-36 rounded-full relative flex items-center justify-center" style={{background:bg}}><div className="w-24 h-24 rounded-full flex flex-col items-center justify-center" style={{background:C.surface}}><span style={{fontFamily:C.mono,fontSize:18,fontWeight:700}}>{parts.length?"100%":"—"}</span><span style={{fontSize:8,color:C.muted}}>classified</span></div></div>;
 }
 function Insight({title,text,icon}) {
   return <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}><Icon name={icon} size={18} color={C.accent}/><div className="mt-3" style={{fontFamily:C.heading,fontSize:12.5,fontWeight:600}}>{title}</div><p className="mt-2" style={{fontSize:10.5,color:C.muted,lineHeight:1.65}}>{text}</p></div>;
@@ -1124,30 +1176,29 @@ function Insight({title,text,icon}) {
 
 /* ---------------- ADMIN ---------------- */
 
-function Admin({toast}) {
-  const [users,setUsers]=useState([
-    {name:"Arnur Adilhanov",role:"Manager",status:"Active"},
-    {name:"Aruzhan Kitchen",role:"Kitchen Staff",status:"Active"},
-    {name:"Dias Staff",role:"Kitchen Staff",status:"Active"},
-    {name:"Demo Admin",role:"Admin",status:"Active"},
-  ]);
-  const toggle=(name)=>{
-    setUsers(users.map(u=>u.name===name?{...u,status:u.status==="Active"?"Paused":"Active"}:u));
-    toast("User status updated.");
+function Admin({data,profile,reload,toast}) {
+  const ROLE_LABEL={kitchen_staff:"Kitchen Staff",manager:"Manager",admin:"Admin"};
+  const users=data.users.map(u=>({id:u.user_id,name:u.name,roleKey:u.role,role:ROLE_LABEL[u.role],status:u.is_active?"Active":"Paused"}));
+  const patch=async(u,upd,msg)=>{
+    const {error}=await sb.from("users").update(upd).eq("user_id",u.id);
+    if(error) return toast("Error: "+error.message);
+    await reload(); toast(msg);
   };
+  const toggle=(u)=>u.id===profile.user_id?toast("You cannot pause your own account."):patch(u,{is_active:u.status!=="Active"},"User status updated.");
+  const changeRoleOf=(u,r)=>u.id===profile.user_id?toast("You cannot change your own role."):patch(u,{role:r},"User role updated.");
   return (
     <div className="page-enter">
       <SectionTitle eyebrow="System Control" title="Administration" description="Manage access, users and system activity."/>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
         <StatCard icon="users" label="Users" value={`${users.length}`} accent={C.accent}/>
         <StatCard icon="shield-check" label="Active" value={`${users.filter(x=>x.status==="Active").length}`} accent={C.blue}/>
-        <StatCard icon="database" label="Audit Events" value="342" accent={C.amber}/>
-        <StatCard icon="server" label="Database" value="Ready" accent={C.accent}/>
+        <StatCard icon="database" label="Audit Events" value={`${data.prod.length+data.waste.length+data.orders.length}`} accent={C.amber}/>
+        <StatCard icon="server" label="Database" value="Connected" accent={C.accent}/>
       </div>
       <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
-        <div className="flex justify-between mb-4"><div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>User Access</h2><p style={{fontSize:11,color:C.muted}}>Demo permissions before PostgreSQL authentication is connected.</p></div><Button icon="user-plus" onClick={()=>toast("User creation UI is ready for backend integration.")}>Add User</Button></div>
+        <div className="flex justify-between mb-4"><div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>User Access</h2><p style={{fontSize:11,color:C.muted}}>Roles and access are stored in PostgreSQL (Supabase Auth).</p></div><Button icon="user-plus" onClick={()=>toast("Users register on the sign-up screen. Change their role here.")}>Add User</Button></div>
         <div className="overflow-x-auto"><table className="w-full"><thead><tr style={{fontSize:9,color:C.muted,borderBottom:`1px solid ${C.border}`}}><th className="text-left pb-3">USER</th><th className="text-left pb-3">ROLE</th><th className="text-left pb-3">STATUS</th><th className="text-right pb-3">ACTION</th></tr></thead>
-          <tbody>{users.map(u=><tr key={u.name} style={{borderBottom:`1px solid ${C.border}`}}><td className="py-3" style={{fontSize:11.5,fontWeight:600}}>{u.name}</td><td className="py-3" style={{fontSize:10,color:C.muted}}>{u.role}</td><td className="py-3"><span style={{fontSize:9,color:u.status==="Active"?C.accent:C.red}}>{u.status}</span></td><td className="py-3 text-right"><button onClick={()=>toggle(u.name)} className="px-2.5 py-1.5 rounded-lg cursor-pointer" style={{background:C.raised,color:C.muted,fontSize:9}}>{u.status==="Active"?"Pause":"Activate"}</button></td></tr>)}</tbody>
+          <tbody>{users.map(u=><tr key={u.id} style={{borderBottom:`1px solid ${C.border}`}}><td className="py-3" style={{fontSize:11.5,fontWeight:600}}>{u.name}</td><td className="py-3" style={{fontSize:10,color:C.muted}}>{u.role}</td><td className="py-3"><span style={{fontSize:9,color:u.status==="Active"?C.accent:C.red}}>{u.status}</span></td><td className="py-3 text-right"><select value={u.roleKey} onChange={e=>changeRoleOf(u,e.target.value)} className="mr-2 px-2 py-1.5 rounded-lg outline-none" style={{background:C.raised,color:C.muted,fontSize:9,border:`1px solid ${C.border}`}}><option value="kitchen_staff">Kitchen Staff</option><option value="manager">Manager</option><option value="admin">Admin</option></select><button onClick={()=>toggle(u)} className="px-2.5 py-1.5 rounded-lg cursor-pointer" style={{background:C.raised,color:C.muted,fontSize:9}}>{u.status==="Active"?"Pause":"Activate"}</button></td></tr>)}</tbody>
         </table></div>
       </div>
     </div>
@@ -1165,58 +1216,94 @@ function SelectField({label,value,onChange,options}) {
 
 /* ---------------- APP ---------------- */
 
+function Splash({text,onLogout}) {
+  return <div className="min-h-screen flex flex-col items-center justify-center gap-5 p-6 soft-grid" style={{background:C.bg}}><Logo/><div style={{fontSize:13,color:onLogout?C.red:C.muted,maxWidth:420,textAlign:"center"}}>{text}</div>{onLogout&&<Button variant="subtle" onClick={onLogout} icon="log-out">Sign out</Button>}</div>;
+}
+
 function App() {
-  const [authed,setAuthed]=useState(false);
-  const [user,setUser]=useState(null);
+  const [session,setSession]=useState(undefined);
+  const [profile,setProfile]=useState(null);
+  const [data,setData]=useState(null);
   const [role,setRole]=useState(null);
   const [page,setPage]=useState("dashboard");
   const [toastMsg,setToastMsg]=useState("");
-  const [stats,setStats]=useState({
-    prepared:140,sold:95,wasteKg:4.2,preparedKg:100,wasteRate:4.2
-  });
-  const [logs,setLogs]=useState(INITIAL_LOGS);
+  const [loadErr,setLoadErr]=useState("");
 
   const toast=(msg)=>{
     setToastMsg(msg);
     setTimeout(()=>setToastMsg(""),2800);
   };
+  const reload=async()=>{
+    try{ setData(await loadAll()); setLoadErr(""); }catch(e){ setLoadErr(e.message||String(e)); }
+  };
+  const logout=async()=>{ await sb.auth.signOut(); setRole(null); };
+
+  useEffect(()=>{
+    sb.auth.getSession().then(({data})=>setSession(data.session));
+    const {data:l}=sb.auth.onAuthStateChange((_e,s)=>setSession(s));
+    return ()=>l.subscription.unsubscribe();
+  },[]);
+
+  useEffect(()=>{
+    if(!session){ setProfile(null); setData(null); setRole(null); return; }
+    let off=false;
+    (async()=>{
+      const {data:p,error}=await sb.from("users").select("*").eq("auth_id",session.user.id).maybeSingle();
+      if(off) return;
+      if(error||!p){ setLoadErr(error?.message||"No profile found for this account."); return; }
+      if(!p.is_active){ alert("This account is paused. Contact an administrator."); await sb.auth.signOut(); return; }
+      setProfile(p);
+      await reload();
+    })();
+    return ()=>{off=true};
+  },[session?.user?.id]);
+
+  const allowed=!profile?[]:profile.role==="admin"?["kitchen","manager","admin"]:profile.role==="manager"?["kitchen","manager"]:["kitchen"];
+  const activeRole=role&&allowed.includes(role)?role:(allowed.length===1?allowed[0]:null);
+
+  useEffect(()=>{
+    if(activeRole==="kitchen" && ["sales","environment","admin"].includes(page)) setPage("dashboard");
+    if(activeRole==="manager" && page==="admin") setPage("dashboard");
+    if(activeRole==="admin" && !["dashboard","inventory","analytics","admin"].includes(page)) setPage("dashboard");
+  },[activeRole]);
 
   useEffect(()=>{
     if(window.lucide) window.lucide.createIcons();
   });
 
-  useEffect(()=>{
-    if(role==="kitchen" && ["sales","environment"].includes(page)) setPage("dashboard");
-    if(role==="admin" && !["dashboard","inventory","analytics"].includes(page)) setPage("dashboard");
-  },[role]);
+  if(session===undefined) return <Splash text="Connecting to EcoBite..."/>;
+  if(!session) return <AuthScreen/>;
+  if(loadErr&&!data) return <Splash text={loadErr} onLogout={logout}/>;
+  if(!profile||!data) return <Splash text="Loading your workspace..."/>;
+  if(!activeRole) return <RoleSelect user={profile} allowed={allowed} onPick={r=>{setRole(r);setPage("dashboard")}}/>;
 
-  if(!authed) return <AuthScreen onAuth={u=>{setUser(u);setAuthed(true)}}/>;
-  if(!role) return <RoleSelect user={user} onPick={r=>{setRole(r);setPage("dashboard")}}/>;
-
-  const logout=()=>{setAuthed(false);setRole(null);setUser(null);};
+  const derived=derive(data,14);
+  FOOD_ITEMS=derived.items;
+  const stats=derived.stats;
   const changeRole=()=>setRole(null);
 
   const renderPage=()=>{
-    if(page==="dashboard") return <Dashboard stats={stats} logs={logs} setPage={setPage}/>;
-    if(page==="production") return <Production stats={stats} setStats={setStats} toast={toast}/>;
-    if(page==="sales") return <Sales stats={stats} setStats={setStats} toast={toast}/>;
-    if(page==="waste") return <WasteLog stats={stats} setStats={setStats} logs={logs} setLogs={setLogs} toast={toast}/>;
-    if(page==="inventory") return <Inventory toast={toast}/>;
-    if(page==="recommendation") return <Recommendation stats={stats} toast={toast}/>;
+    if(page==="dashboard") return <Dashboard stats={stats} logs={data.waste} setPage={setPage}/>;
+    if(page==="production") return <Production data={data} profile={profile} reload={reload} toast={toast}/>;
+    if(page==="sales") return <Sales stats={stats} data={data} profile={profile} reload={reload} toast={toast}/>;
+    if(page==="waste") return <WasteLog stats={stats} data={data} profile={profile} reload={reload} toast={toast}/>;
+    if(page==="inventory") return <Inventory data={data} reload={reload} toast={toast}/>;
+    if(page==="recommendation") return <Recommendation stats={stats} profile={profile} toast={toast}/>;
     if(page==="environment") return <Environment stats={stats}/>;
-    if(page==="analytics") return <Analytics stats={stats}/>;
-    if(page==="admin") return <Admin toast={toast}/>;
-    return <Dashboard stats={stats} logs={logs} setPage={setPage}/>;
+    if(page==="analytics") return <Analytics stats={stats} data={data}/>;
+    if(page==="admin") return <Admin data={data} profile={profile} reload={reload} toast={toast}/>;
+    return <Dashboard stats={stats} logs={data.waste} setPage={setPage}/>;
   };
 
   return (
     <div className="min-h-screen flex" style={{background:C.bg,color:C.text}}>
-      <Sidebar active={page} setActive={setPage} role={role} onLogout={logout} onChangeRole={changeRole}/>
+      <Sidebar active={page} setActive={setPage} role={activeRole} onLogout={logout} onChangeRole={changeRole}/>
       <div className="flex-1 min-w-0">
-        <TopBar user={user} role={role} onChangeRole={changeRole} onLogout={logout}/>
+        <TopBar user={profile} role={activeRole} onChangeRole={changeRole} onLogout={logout}/>
+        {loadErr && <div className="mx-4 sm:mx-6 mt-4 px-4 py-3 rounded-xl" style={{background:"rgba(226,88,79,.08)",border:"1px solid rgba(226,88,79,.22)",color:C.red,fontSize:12}}>Database error: {loadErr}</div>}
         <main className="px-4 sm:px-6 py-6 pb-24 lg:pb-8 max-w-[1450px] mx-auto">{renderPage()}</main>
       </div>
-      <MobileNav active={page} setActive={setPage} role={role}/>
+      <MobileNav active={page} setActive={setPage} role={activeRole}/>
 
       {toastMsg && <div className="fixed right-4 bottom-20 lg:bottom-6 z-[80] toast px-4 py-3 rounded-xl flex items-center gap-2" style={{background:C.raised,border:`1px solid ${C.accentDim}`,boxShadow:"0 15px 50px rgba(0,0,0,.35)",fontSize:11.5}}><Icon name="check-circle-2" size={16} color={C.accent}/>{toastMsg}</div>}
     </div>
