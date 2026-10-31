@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,100 +18,26 @@
   <style>
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      background: #07100B;
-      color: #EAF1EA;
-      font-family: 'Inter', sans-serif;
-    }
+    body { margin:0; background:#F6F7F9; color:#0F172A; font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums; line-height:1.5; }
     button, input, select { font: inherit; }
-    ::selection { background: #8FD14F; color: #07100B; }
-
-    .glass {
-      background: rgba(20, 28, 22, .82);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-    }
-
-    .lamp-glow {
-      box-shadow:
-        0 0 35px rgba(143,209,79,.45),
-        0 0 90px rgba(143,209,79,.20);
-    }
-
-    .lamp-off {
-      box-shadow: 0 0 0 rgba(143,209,79,0);
-    }
-
-    .ambient {
-      animation: ambient 7s ease-in-out infinite;
-    }
-    @keyframes ambient {
-      0%,100% { transform: translateY(0) scale(1); opacity:.55; }
-      50% { transform: translateY(-12px) scale(1.04); opacity:.9; }
-    }
-
-    .float-slow { animation: floatSlow 6s ease-in-out infinite; }
-    @keyframes floatSlow {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
-    .pull-string {
-      transform-origin: top center;
-      transition: transform .18s ease;
-    }
-    .pull-string.pulling { transform: rotate(8deg); }
-
-    .fade-up {
-      animation: fadeUp .6s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity:0; transform: translateY(14px); }
-      to { opacity:1; transform: translateY(0); }
-    }
-
-    .page-enter { animation: pageEnter .35s ease both; }
-    @keyframes pageEnter {
-      from { opacity:0; transform: translateY(8px); }
-      to { opacity:1; transform: translateY(0); }
-    }
-
-    .progress-fill {
-      transition: width .6s cubic-bezier(.2,.8,.2,1);
-    }
-
-    .chart-bar {
-      transition: height .7s cubic-bezier(.2,.8,.2,1);
-    }
-
-    .switcher {
-      transition: all .25s ease;
-    }
-
-    .soft-grid {
-      background-image:
-        linear-gradient(rgba(143,209,79,.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(143,209,79,.035) 1px, transparent 1px);
-      background-size: 38px 38px;
-    }
-
-    .darken {
-      animation: darken .55s ease;
-    }
-    @keyframes darken {
-      0% { filter: brightness(1); }
-      45% { filter: brightness(.22); }
-      100% { filter: brightness(1); }
-    }
-
-    .toast {
-      animation: toastIn .3s ease both;
-    }
-    @keyframes toastIn {
-      from { opacity:0; transform:translateY(12px); }
-      to { opacity:1; transform:translateY(0); }
-    }
+    h1, h2 { letter-spacing:-.02em; }
+    ::selection { background:#BBF7D0; color:#0F172A; }
+    :focus-visible { outline:2px solid #15803D !important; outline-offset:2px; }
+    .glass { background:#fff; box-shadow:0 1px 2px rgba(15,23,42,.04), 0 12px 32px rgba(15,23,42,.07); }
+    .lamp-glow, .lamp-off { box-shadow:none; }
+    .ambient { display:none; }
+    .soft-grid { background:none; }
+    .darken { animation:none; }
+    .fade-up { animation:fadeUp .4s ease both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+    .page-enter { animation:pageEnter .25s ease both; }
+    @keyframes pageEnter { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+    .progress-fill { transition:width .5s ease; }
+    .chart-bar { transition:height .5s ease; }
+    .toast { animation:toastIn .25s ease both; }
+    @keyframes toastIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+    @media (max-width:640px){ input, select { font-size:16px !important; } }
+    @media (prefers-reduced-motion:reduce){ *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
   </style>
 </head>
 
@@ -122,21 +48,21 @@
 const { useState, useEffect, useMemo, useContext } = React;
 
 const C = {
-  bg: "#07100B",
-  surface: "#101A13",
-  raised: "#172219",
-  border: "#27352B",
-  text: "#EAF1EA",
-  muted: "#8CA192",
-  accent: "#8FD14F",
-  accentDim: "#4E7A2E",
-  amber: "#E0A83E",
-  red: "#E2584F",
-  blue: "#5DADE2",
-  purple: "#A78BFA",
-  heading: "'Sora', sans-serif",
+  bg: "#F6F7F9",
+  surface: "#FFFFFF",
+  raised: "#F4F6F8",
+  border: "#E3E7EC",
+  text: "#0F172A",
+  muted: "#5B6678",
+  accent: "#15803D",
+  accentDim: "#BBF7D0",
+  amber: "#B45309",
+  red: "#DC2626",
+  blue: "#2563EB",
+  purple: "#7C3AED",
+  heading: "'Inter', sans-serif",
   body: "'Inter', sans-serif",
-  mono: "'JetBrains Mono', monospace",
+  mono: "'Inter', sans-serif",
 };
 
 let FOOD_ITEMS = [];
@@ -163,13 +89,13 @@ function Icon({ name, size=18, color="currentColor", strokeWidth=2 }) {
 function Logo({ compact=false }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{background:C.accent}}>
-        <Icon name="leaf" size={20} color={C.bg}/>
+      <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{background:C.accent}}>
+        <Icon name="leaf" size={20} color="#fff"/>
       </div>
       {!compact && (
         <div>
-          <div style={{fontFamily:C.heading,fontWeight:800,fontSize:19,lineHeight:1,color:C.text}}>EcoBite</div>
-          <div style={{fontSize:9,color:C.muted,letterSpacing:1.4,marginTop:4}}>SMART FOOD INTELLIGENCE</div>
+          <div style={{fontFamily:C.heading,fontWeight:700,fontSize:19,lineHeight:1,color:C.text}}>EcoBite</div>
+          <div style={{fontSize:12,color:C.muted,marginTop:3}}>Food waste platform</div>
         </div>
       )}
     </div>
@@ -178,15 +104,15 @@ function Logo({ compact=false }) {
 
 function Button({children,onClick,variant="primary",className="",disabled=false,type="button",icon}) {
   const styles = {
-    primary:{background:C.accent,color:C.bg,border:"1px solid transparent"},
+    primary:{background:C.accent,color:"#fff",border:"1px solid transparent"},
     ghost:{background:"transparent",color:C.text,border:`1px solid ${C.border}`},
     subtle:{background:C.raised,color:C.text,border:`1px solid ${C.border}`},
     danger:{background:C.red,color:"#fff",border:"1px solid transparent"},
-    blue:{background:"rgba(93,173,226,.12)",color:C.blue,border:"1px solid rgba(93,173,226,.25)"},
+    blue:{background:"rgba(37,99,235,.12)",color:C.blue,border:"1px solid rgba(37,99,235,.25)"},
   };
   return (
     <button type={type} onClick={onClick} disabled={disabled}
-      className={`px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[.98] disabled:opacity-40 ${className}`}
+      className={`px-4 py-2.5 min-h-[44px] rounded-lg flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[.98] disabled:opacity-40 ${className}`}
       style={{...styles[variant],fontWeight:600,fontSize:13.5,cursor:disabled?"not-allowed":"pointer"}}>
       {icon && <Icon name={icon} size={16}/>}
       {children}
@@ -196,13 +122,13 @@ function Button({children,onClick,variant="primary",className="",disabled=false,
 
 function StatCard({icon,label,value,sub,accent=C.accent,onClick}) {
   return (
-    <button onClick={onClick} className={`text-left p-5 rounded-2xl w-full transition-all ${onClick?"hover:-translate-y-0.5 cursor-pointer":"cursor-default"}`}
+    <button onClick={onClick} className={`text-left p-5 rounded-xl w-full transition-all ${onClick?"hover:shadow-md cursor-pointer":"cursor-default"}`}
       style={{background:C.surface,border:`1px solid ${C.border}`}}>
       <div className="flex items-center justify-between">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{background:`${accent}18`}}>
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{background:`${accent}18`}}>
           <Icon name={icon} size={18} color={accent}/>
         </div>
-        {sub && <span style={{fontSize:11,color:accent,fontFamily:C.mono}}>{sub}</span>}
+        {sub && <span style={{fontSize:12,color:accent,fontFamily:C.mono}}>{sub}</span>}
       </div>
       <div className="mt-4" style={{fontSize:12,color:C.muted}}>{label}</div>
       <div className="mt-1" style={{fontFamily:C.mono,fontSize:25,fontWeight:700,color:C.text}}>{value}</div>
@@ -213,24 +139,24 @@ function StatCard({icon,label,value,sub,accent=C.accent,onClick}) {
 
 function MetricBox({label,value,sub,accent=C.accent}) {
   return (
-    <div className="p-4 rounded-xl" style={{background:C.raised,border:`1px solid ${C.border}`}}>
-      <div style={{fontSize:9.5,color:C.muted}}>{label}</div>
+    <div className="p-4 rounded-lg" style={{background:C.raised,border:`1px solid ${C.border}`}}>
+      <div style={{fontSize:12,color:C.muted}}>{label}</div>
       <div className="mt-1" style={{fontFamily:C.mono,fontSize:20,fontWeight:700,color:accent}}>{value}</div>
-      {sub && <div className="mt-1" style={{fontSize:9,color:C.muted}}>{sub}</div>}
+      {sub && <div className="mt-1" style={{fontSize:12,color:C.muted}}>{sub}</div>}
     </div>
   );
 }
 
 function FeatureCard({icon,title,text}) {
   return (
-    <div className="p-5 rounded-2xl transition-all hover:-translate-y-0.5" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+    <div className="p-5 rounded-xl transition-all hover:shadow-md" style={{background:C.surface,border:`1px solid ${C.border}`}}>
       <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{background:`${C.accent}12`}}>
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{background:`${C.accent}12`}}>
           <Icon name={icon} size={17} color={C.accent}/>
         </div>
         <div style={{fontFamily:C.heading,fontSize:12.5,fontWeight:700}}>{title}</div>
       </div>
-      <p className="mt-3" style={{fontSize:10.5,color:C.muted,lineHeight:1.65}}>{text}</p>
+      <p className="mt-3" style={{fontSize:12,color:C.muted,lineHeight:1.65}}>{text}</p>
     </div>
   );
 }
@@ -239,7 +165,7 @@ function SectionTitle({eyebrow,title,description,action}) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-5">
       <div>
-        {eyebrow && <div style={{fontSize:10,fontWeight:700,color:C.accent,letterSpacing:1.7,textTransform:"uppercase"}}>{eyebrow}</div>}
+        {eyebrow && <div style={{fontSize:12,fontWeight:700,color:C.accent,letterSpacing:1.7,textTransform:"uppercase"}}>{eyebrow}</div>}
         <h1 className="mt-1" style={{fontFamily:C.heading,fontSize:23,fontWeight:700,color:C.text}}>{title}</h1>
         {description && <p className="mt-1" style={{fontSize:13,color:C.muted}}>{description}</p>}
       </div>
@@ -249,45 +175,6 @@ function SectionTitle({eyebrow,title,description,action}) {
 }
 
 /* ---------------- AUTH + SIGNATURE LAMP ---------------- */
-
-function Lamp({isOn,onPull,pulling}) {
-  return (
-    <div className="relative flex flex-col items-center select-none">
-      <div className={`absolute top-2 w-44 h-44 rounded-full blur-3xl transition-all duration-500 ${isOn?"opacity-40":"opacity-0"}`}
-        style={{background:C.accent}}></div>
-
-      <div className={`relative z-10 transition-all duration-500 ${isOn?"lamp-glow":"lamp-off"}`}>
-        <div className="w-5 h-5 rounded-full mx-auto" style={{background:"#303B32",border:`2px solid ${C.border}`}}></div>
-        <div className="w-1 h-8 mx-auto" style={{background:"#4B584E"}}></div>
-        <div className="relative">
-          <div className="w-24 h-20 rounded-[48%_48%_42%_42%] mx-auto"
-            style={{background:isOn?"#EFFFCC":"#39423B",border:`2px solid ${isOn?"#B9E97E":C.border}`,boxShadow:isOn?"inset 0 -10px 25px rgba(143,209,79,.25)":"none"}}>
-            <div className="absolute left-1/2 top-4 -translate-x-1/2 w-9 h-1 rounded-full" style={{background:isOn?"rgba(255,255,255,.75)":"#4A544D"}}></div>
-            <div className="absolute left-1/2 top-7 -translate-x-1/2 w-6 h-6 rounded-full" style={{border:"2px solid rgba(95,105,95,.45)"}}></div>
-          </div>
-          <div className="w-16 h-5 mx-auto -mt-2 rounded-b-xl" style={{background:"#555F56",border:`2px solid ${C.border}`}}></div>
-        </div>
-      </div>
-
-      <div className={`relative h-36 w-14 -mt-1 pull-string ${pulling?"pulling":""}`}>
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 w-px h-28" style={{background:"#657066"}}></div>
-        <button onClick={onPull}
-          aria-label="Pull the lamp string"
-          className="absolute left-1/2 top-[105px] -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-all hover:scale-110"
-          style={{background:isOn?C.accent:C.raised,border:`2px solid ${isOn?C.accentDim:C.border}`,boxShadow:isOn?"0 8px 25px rgba(143,209,79,.25)":"none"}}>
-          <Icon name="mouse-pointer-2" size={15} color={isOn?C.bg:C.muted}/>
-        </button>
-      </div>
-
-      <div className="mt-1 text-center">
-        <div style={{fontFamily:C.heading,fontSize:13,fontWeight:600,color:C.text}}>
-          {isOn ? "Pull to switch the light off" : "Pull again to illuminate"}
-        </div>
-        <div style={{fontSize:11,color:C.muted,marginTop:4}}>Your first EcoBite interaction</div>
-      </div>
-    </div>
-  );
-}
 
 function AuthScreen({onAuth}) {
   const [mode,setMode]=useState("register");
@@ -326,19 +213,19 @@ function AuthScreen({onAuth}) {
   return (
     <div className={`min-h-screen relative overflow-hidden ${dark?"darken":""}`} style={{background:C.bg}}>
       <div className="absolute inset-0 soft-grid"></div>
-      <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full blur-3xl ambient" style={{background:"rgba(143,209,79,.07)"}}></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full blur-3xl ambient" style={{background:"rgba(93,173,226,.05)",animationDelay:"2s"}}></div>
+      <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full blur-3xl ambient" style={{background:"rgba(21,128,61,.07)"}}></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full blur-3xl ambient" style={{background:"rgba(37,99,235,.05)",animationDelay:"2s"}}></div>
 
       <div className="relative z-10 min-h-screen grid lg:grid-cols-[1.05fr_.95fr]">
         <div className="hidden lg:flex flex-col justify-between p-12 xl:p-16">
           <Logo />
           <div className="max-w-xl fade-up">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6"
-              style={{background:"rgba(143,209,79,.08)",border:"1px solid rgba(143,209,79,.18)",color:C.accent,fontSize:11,fontWeight:700}}>
+              style={{background:"rgba(21,128,61,.08)",border:"1px solid rgba(21,128,61,.18)",color:C.accent,fontSize:12,fontWeight:700}}>
               <span className="w-1.5 h-1.5 rounded-full" style={{background:C.accent}}></span>
               FOOD WASTE INTELLIGENCE
             </div>
-            <h1 style={{fontFamily:C.heading,fontSize:"clamp(38px,5vw,67px)",lineHeight:1.02,fontWeight:800,color:C.text}}>
+            <h1 style={{fontFamily:C.heading,fontSize:"clamp(38px,5vw,67px)",lineHeight:1.02,fontWeight:700,color:C.text}}>
               Measure today.<br/>
               <span style={{color:C.accent}}>Reduce tomorrow.</span>
             </h1>
@@ -350,29 +237,27 @@ function AuthScreen({onAuth}) {
             <div className="grid grid-cols-2 gap-3 mt-9 max-w-lg">
               {[
                 ["measure","Measure","prepared, sold & wasted"],
-                ["brain-circuit","Predict","future demand"],
+                ["trending-up","Predict","future demand"],
                 ["trending-down","Reduce","avoidable waste"],
                 ["recycle","Rescue","safe surplus food"],
               ].map(([ic,t,d])=>(
-                <div key={t} className="p-4 rounded-2xl" style={{background:"rgba(16,26,19,.68)",border:`1px solid ${C.border}`}}>
+                <div key={t} className="p-4 rounded-xl" style={{background:"#FFFFFF",border:`1px solid ${C.border}`}}>
                   <Icon name={ic} size={18} color={C.accent}/>
                   <div className="mt-3" style={{fontWeight:700,fontSize:13}}>{t}</div>
-                  <div style={{fontSize:11,color:C.muted,marginTop:3}}>{d}</div>
+                  <div style={{fontSize:12,color:C.muted,marginTop:3}}>{d}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{fontSize:11,color:C.muted}}>© 2026 EcoBite · Smart Food Waste Reduction Platform</div>
+          <div style={{fontSize:12,color:C.muted}}>© 2026 EcoBite · Smart Food Waste Reduction Platform</div>
         </div>
 
         <div className="flex items-center justify-center p-5 sm:p-8">
           <div className="w-full max-w-md">
             <div className="lg:hidden flex justify-center mb-7"><Logo/></div>
 
-            <div className="rounded-[28px] p-6 sm:p-8 glass" style={{border:`1px solid ${C.border}`,boxShadow:"0 30px 100px rgba(0,0,0,.35)"}}>
-              <div className="mb-6">
-                <Lamp isOn={lampOn} onPull={pullLamp} pulling={pulling}/>
-              </div>
+            <div className="rounded-xl p-6 sm:p-8 glass" style={{border:`1px solid ${C.border}`,boxShadow:"0 30px 100px rgba(15,23,42,.10)"}}>
+              
 
               <div className="text-center mb-6">
                 <div style={{fontFamily:C.heading,fontSize:23,fontWeight:700}}>{mode==="register"?"Create your account":"Welcome back"}</div>
@@ -389,7 +274,7 @@ function AuthScreen({onAuth}) {
                 <Field label="Password" value={password} onChange={setPassword} placeholder="••••••••" type="password" icon="lock"/>
 
                 {error && (
-                  <div className="px-3 py-2.5 rounded-xl" style={{background:"rgba(226,88,79,.08)",border:"1px solid rgba(226,88,79,.22)",color:C.red,fontSize:12}}>
+                  <div className="px-3 py-2.5 rounded-lg" style={{background:"rgba(220,38,38,.08)",border:"1px solid rgba(220,38,38,.22)",color:C.red,fontSize:12}}>
                     {error}
                   </div>
                 )}
@@ -401,7 +286,7 @@ function AuthScreen({onAuth}) {
 
               <div className="flex items-center gap-3 my-6">
                 <div className="h-px flex-1" style={{background:C.border}}></div>
-                <span style={{fontSize:10,color:C.muted}}>OR</span>
+                <span style={{fontSize:12,color:C.muted}}>OR</span>
                 <div className="h-px flex-1" style={{background:C.border}}></div>
               </div>
 
@@ -412,7 +297,7 @@ function AuthScreen({onAuth}) {
               </button>
             </div>
 
-            <div className="text-center mt-5" style={{fontSize:10.5,color:C.muted}}>
+            <div className="text-center mt-5" style={{fontSize:12,color:C.muted}}>
               Connected to Supabase · PostgreSQL
             </div>
           </div>
@@ -425,11 +310,11 @@ function AuthScreen({onAuth}) {
 function Field({label,value,onChange,placeholder,type="text",icon}) {
   return (
     <div>
-      <label style={{fontSize:11.5,color:C.muted}}>{label}</label>
+      <label style={{fontSize:12,color:C.muted}}>{label}</label>
       <div className="relative mt-1.5">
         <div className="absolute left-3 top-1/2 -translate-y-1/2"><Icon name={icon} size={15} color={C.muted}/></div>
         <input type={type} value={value} placeholder={placeholder} onChange={e=>onChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 rounded-xl outline-none"
+          className="w-full pl-10 pr-4 py-3 rounded-lg outline-none"
           style={{background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:13}}/>
       </div>
     </div>
@@ -458,17 +343,17 @@ function RoleSelect({onPick,user}) {
         <div className="grid md:grid-cols-3 gap-4">
           {roles.map(r=>(
             <button key={r.id} onClick={()=>onPick(r.id)} onMouseEnter={()=>setHover(r.id)} onMouseLeave={()=>setHover(null)}
-              className="text-left rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+              className="text-left rounded-xl p-6 transition-all duration-300 hover:shadow-md cursor-pointer"
               style={{
-                background:hover===r.id?"#17231A":C.surface,
-                border:`1px solid ${hover===r.id?"rgba(143,209,79,.42)":C.border}`,
-                boxShadow:hover===r.id?"0 25px 70px rgba(0,0,0,.28)":"none"
+                background:hover===r.id?"#F8FAFC":C.surface,
+                border:`1px solid ${hover===r.id?"rgba(21,128,61,.42)":C.border}`,
+                boxShadow:hover===r.id?"0 25px 70px rgba(15,23,42,.10)":"none"
               }}>
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{background:"rgba(143,209,79,.09)"}}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{background:"rgba(21,128,61,.09)"}}>
                   <Icon name={r.icon} size={22} color={C.accent}/>
                 </div>
-                <span style={{fontSize:9,color:C.muted,fontWeight:700,letterSpacing:1.2}}>{r.tag}</span>
+                <span style={{fontSize:12,color:C.muted,fontWeight:700,letterSpacing:1.2}}>{r.tag}</span>
               </div>
               <div className="mt-7" style={{fontFamily:C.heading,fontSize:17,fontWeight:700}}>{r.label}</div>
               <p className="mt-2" style={{fontSize:12,color:C.muted,lineHeight:1.65,minHeight:58}}>{r.desc}</p>
@@ -479,7 +364,7 @@ function RoleSelect({onPick,user}) {
           ))}
         </div>
 
-        <div className="text-center mt-7" style={{fontSize:11,color:C.muted}}>
+        <div className="text-center mt-7" style={{fontSize:12,color:C.muted}}>
           Signed in as <span style={{color:C.text}}>{user?.name||"User"}</span> · You can change role later
         </div>
       </div>
@@ -495,7 +380,7 @@ const NAV=[
   {id:"sales",label:"Sales",icon:"shopping-cart"},
   {id:"waste",label:"Waste Log",icon:"trash-2"},
   {id:"inventory",label:"Inventory",icon:"package"},
-  {id:"recommendation",label:"Smart Recommendation",icon:"brain-circuit"},
+  {id:"recommendation",label:"Smart Recommendation",icon:"trending-up"},
   {id:"environment",label:"Environmental Impact",icon:"globe-2"},
   {id:"analytics",label:"Reports & Analytics",icon:"bar-chart-3"},
   {id:"admin",label:"Administration",icon:"shield-check"},
@@ -511,12 +396,12 @@ function Sidebar({active,setActive,role,onLogout,onChangeRole}) {
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col p-4 sticky top-0 h-screen" style={{background:C.bg,borderRight:`1px solid ${C.border}`}}>
       <div className="px-2 py-3 mb-4"><Logo/></div>
-      <div className="px-2 mb-2" style={{fontSize:9,color:C.muted,letterSpacing:1.5,fontWeight:700}}>WORKSPACE</div>
+      <div className="px-2 mb-2" style={{fontSize:12,color:C.muted,letterSpacing:1.5,fontWeight:700}}>WORKSPACE</div>
       <nav className="flex flex-col gap-1">
         {visible.map(item=>(
           <button key={item.id} onClick={()=>setActive(item.id)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-left cursor-pointer transition-all"
-            style={{background:active===item.id?"rgba(143,209,79,.10)":"transparent",color:active===item.id?C.accent:C.muted,border:`1px solid ${active===item.id?"rgba(143,209,79,.15)":"transparent"}`}}>
+            className="flex items-center gap-3 px-3 py-3 rounded-lg text-left cursor-pointer transition-all"
+            style={{background:active===item.id?"rgba(21,128,61,.10)":"transparent",color:active===item.id?C.accent:C.muted,border:`1px solid ${active===item.id?"rgba(21,128,61,.15)":"transparent"}`}}>
             <Icon name={item.icon} size={17}/>
             <span style={{fontSize:12.5,fontWeight:active===item.id?600:500}}>{item.label}</span>
           </button>
@@ -524,21 +409,21 @@ function Sidebar({active,setActive,role,onLogout,onChangeRole}) {
       </nav>
 
       <div className="mt-auto">
-        <div className="p-3 rounded-2xl mb-3" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-3 rounded-xl mb-3" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background:C.accent,color:C.bg}}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{background:C.accent,color:"#fff"}}>
               <Icon name={role==="manager"?"briefcase":role==="admin"?"shield":"chef-hat"} size={15}/>
             </div>
             <div>
-              <div style={{fontSize:11,fontWeight:700,color:C.text}}>{role==="manager"?"Manager":role==="admin"?"Administrator":"Kitchen Staff"}</div>
-              <div style={{fontSize:9,color:C.muted}}>EcoBite workspace</div>
+              <div style={{fontSize:12,fontWeight:700,color:C.text}}>{role==="manager"?"Manager":role==="admin"?"Administrator":"Kitchen Staff"}</div>
+              <div style={{fontSize:12,color:C.muted}}>EcoBite workspace</div>
             </div>
           </div>
         </div>
-        <button onClick={onChangeRole} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl mb-1 cursor-pointer" style={{color:C.muted,fontSize:12}}>
+        <button onClick={onChangeRole} className="w-full flex items-center gap-2 px-3 py-3 rounded-lg mb-1 cursor-pointer" style={{color:C.muted,fontSize:12}}>
           <Icon name="shuffle" size={15}/> Change role
         </button>
-        <button onClick={onLogout} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer" style={{color:C.red,fontSize:12}}>
+        <button onClick={onLogout} className="w-full flex items-center gap-2 px-3 py-3 rounded-lg cursor-pointer" style={{color:C.red,fontSize:12}}>
           <Icon name="log-out" size={15}/> Sign out
         </button>
       </div>
@@ -551,12 +436,12 @@ function MobileNav({active,setActive,role}) {
     role==="admin"?["dashboard","inventory","analytics","admin"]:
     ["dashboard","production","waste","recommendation","analytics"];
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-2 py-2" style={{background:"rgba(7,16,11,.95)",backdropFilter:"blur(15px)",borderTop:`1px solid ${C.border}`}}>
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-2 py-2" style={{background:"rgba(255,255,255,.96)",backdropFilter:"blur(15px)",borderTop:`1px solid ${C.border}`}}>
       <div className="grid grid-cols-5 gap-1">
         {ids.map(id=>{
           const n=NAV.find(x=>x.id===id);
-          return <button key={id} onClick={()=>setActive(id)} className="flex flex-col items-center gap-1 py-1.5 rounded-lg cursor-pointer" style={{color:active===id?C.accent:C.muted}}>
-            <Icon name={n.icon} size={17}/><span style={{fontSize:8.5}}>{n.label.split(" ")[0]}</span>
+          return <button key={id} onClick={()=>setActive(id)} className="flex flex-col items-center gap-1 py-2.5 rounded-lg cursor-pointer" style={{color:active===id?C.accent:C.muted}}>
+            <Icon name={n.icon} size={17}/><span style={{fontSize:12}}>{n.label.split(" ")[0]}</span>
           </button>
         })}
       </div>
@@ -567,25 +452,25 @@ function MobileNav({active,setActive,role}) {
 function TopBar({user,role,onChangeRole,onLogout}) {
   const {cafes,cafeId,setCafeId}=useContext(Ctx);
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3.5" style={{background:"rgba(7,16,11,.90)",backdropFilter:"blur(16px)",borderBottom:`1px solid ${C.border}`}}>
+    <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3.5" style={{background:"rgba(255,255,255,.90)",backdropFilter:"blur(16px)",borderBottom:`1px solid ${C.border}`}}>
       <div className="lg:hidden"><Logo compact/></div>
       <div className="hidden lg:block">
-        <div style={{fontFamily:C.mono,fontSize:10,color:C.muted}}>EcoBite / {role.toUpperCase()}</div>
+        <div style={{fontFamily:C.mono,fontSize:12,color:C.muted}}>EcoBite / {role.toUpperCase()}</div>
       </div>
       <div className="flex items-center gap-2.5">
-        <select value={cafeId||""} onChange={e=>setCafeId(Number(e.target.value))} className="px-3 py-2 rounded-xl outline-none cursor-pointer" style={{background:C.surface,border:`1px solid ${C.border}`,color:C.text,fontSize:11}}>{cafes.map(c=><option key={c.cafe_id} value={c.cafe_id}>{c.name}</option>)}</select>
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full" style={{background:C.surface,border:`1px solid ${C.border}`,fontSize:10,color:C.muted}}>
-          <span className="w-1.5 h-1.5 rounded-full" style={{background:C.accent,boxShadow:`0 0 8px ${C.accent}`}}></span>
+        <select value={cafeId||""} onChange={e=>setCafeId(Number(e.target.value))} className="px-3 py-2 rounded-lg outline-none cursor-pointer" style={{background:C.surface,border:`1px solid ${C.border}`,color:C.text,fontSize:12}}>{cafes.map(c=><option key={c.cafe_id} value={c.cafe_id}>{c.name}</option>)}</select>
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full" style={{background:C.surface,border:`1px solid ${C.border}`,fontSize:12,color:C.muted}}>
+          <span className="w-1.5 h-1.5 rounded-full" style={{background:C.accent}}></span>
           SYSTEM ONLINE
         </div>
         <div className="hidden sm:block text-right">
-          <div style={{fontSize:11,fontWeight:600}}>{user?.name||"User"}</div>
-          <div style={{fontSize:9,color:C.muted}}>{user?.email||"demo@EcoBite.kz"}</div>
+          <div style={{fontSize:12,fontWeight:600}}>{user?.name||"User"}</div>
+          <div style={{fontSize:12,color:C.muted}}>{user?.email||"demo@EcoBite.kz"}</div>
         </div>
-        <button onClick={onChangeRole} title="Change role" className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer" style={{background:C.surface,border:`1px solid ${C.border}`,color:C.muted}}>
+        <button onClick={onChangeRole} title="Change role" aria-label="Change role" className="w-11 h-11 rounded-lg flex items-center justify-center cursor-pointer" style={{background:C.surface,border:`1px solid ${C.border}`,color:C.muted}}>
           <Icon name="shuffle" size={15}/>
         </button>
-        <button onClick={onLogout} title="Sign out" className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer" style={{background:C.surface,border:`1px solid ${C.border}`,color:C.muted}}>
+        <button onClick={onLogout} title="Sign out" aria-label="Sign out" className="w-11 h-11 rounded-lg flex items-center justify-center cursor-pointer" style={{background:C.surface,border:`1px solid ${C.border}`,color:C.muted}}>
           <Icon name="log-out" size={15}/>
         </button>
       </div>
@@ -613,31 +498,31 @@ function Dashboard({stats,logs,setPage}) {
       </div>
 
       <div className="grid xl:grid-cols-[1.45fr_.75fr] gap-4 mt-4">
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div className="flex items-center justify-between mb-6">
             <div>
               <div style={{fontFamily:C.heading,fontWeight:600,fontSize:15}}>14-Day Waste Trend</div>
-              <div style={{fontSize:11,color:C.muted,marginTop:3}}>Estimated total food waste per day</div>
+              <div style={{fontSize:12,color:C.muted,marginTop:3}}>Estimated total food waste per day</div>
             </div>
-            <div className="px-2.5 py-1.5 rounded-lg" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:10}}>↓ 18% vs previous period</div>
+            <div className="px-2.5 py-1.5 rounded-lg" style={{background:"rgba(21,128,61,.08)",color:C.accent,fontSize:12}}>↓ 18% vs previous period</div>
           </div>
           <MiniChart/>
         </div>
 
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:"rgba(143,209,79,.1)"}}><Icon name="brain-circuit" size={16} color={C.accent}/></div>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:"rgba(21,128,61,.1)"}}><Icon name="trending-up" size={16} color={C.accent}/></div>
             <div>
               <div style={{fontFamily:C.heading,fontWeight:600,fontSize:14}}>Today's Smart Insight</div>
-              <div style={{fontSize:10,color:C.muted}}>Based on recent records</div>
+              <div style={{fontSize:12,color:C.muted}}>Based on recent records</div>
             </div>
           </div>
-          <div className="mt-5 p-4 rounded-xl" style={{background:C.raised,border:`1px solid ${C.border}`}}>
+          <div className="mt-5 p-4 rounded-lg" style={{background:C.raised,border:`1px solid ${C.border}`}}>
             <div style={{fontSize:13,lineHeight:1.65}}>
               <b style={{color:C.accent}}>{top.name}</b> has the highest waste today. The system suggests preparing <b>{Math.round(top.sold*1.08)} portions</b> tomorrow instead of {top.prepared}.
             </div>
-            <div className="flex items-center gap-2 mt-4" style={{fontSize:10.5,color:C.muted}}>
-              <Icon name="sparkles" size={13} color={C.accent}/> Estimated reduction: <b style={{color:C.accent}}>~2.4 kg waste/day</b>
+            <div className="flex items-center gap-2 mt-4" style={{fontSize:12,color:C.muted}}>
+              <Icon name="info" size={13} color={C.accent}/> Estimated reduction: <b style={{color:C.accent}}>~2.4 kg waste/day</b>
             </div>
           </div>
           <Button className="w-full mt-3" variant="subtle" icon="arrow-right" onClick={()=>setPage("recommendation")}>Open Recommendation</Button>
@@ -650,47 +535,47 @@ function Dashboard({stats,logs,setPage}) {
         <ImpactCard icon="target" title="Reduction Goal" value="72%" label="monthly goal progress" accent={C.accent} progress={72}/>
       </div>
 
-      <div className="p-5 rounded-2xl mt-4" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+      <div className="p-5 rounded-xl mt-4" style={{background:C.surface,border:`1px solid ${C.border}`}}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Highest Waste Items</div>
-            <div style={{fontSize:11,color:C.muted}}>Where tomorrow's production should change first</div>
+            <div style={{fontSize:12,color:C.muted}}>Where tomorrow's production should change first</div>
           </div>
-          <button onClick={()=>setPage("analytics")} className="cursor-pointer" style={{fontSize:11,color:C.accent}}>View report →</button>
+          <button onClick={()=>setPage("analytics")} className="cursor-pointer" style={{fontSize:12,color:C.accent}}>View report →</button>
         </div>
         <div className="flex flex-col gap-3">
           {[...FOOD_ITEMS].sort((a,b)=>b.wasteKg-a.wasteKg).slice(0,4).map((f,i)=>(
             <div key={f.id} className="flex items-center gap-3">
-              <div className="w-7 text-center" style={{fontFamily:C.mono,fontSize:10,color:C.muted}}>0{i+1}</div>
+              <div className="w-7 text-center" style={{fontFamily:C.mono,fontSize:12,color:C.muted}}>0{i+1}</div>
               <div className="flex-1">
-                <div className="flex justify-between mb-1.5"><span style={{fontSize:12.5,fontWeight:600}}>{f.name}</span><span style={{fontFamily:C.mono,fontSize:10,color:C.red}}>{f.wasteKg} kg</span></div>
+                <div className="flex justify-between mb-1.5"><span style={{fontSize:12.5,fontWeight:600}}>{f.name}</span><span style={{fontFamily:C.mono,fontSize:12,color:C.red}}>{f.wasteKg} kg</span></div>
                 <div className="h-1.5 rounded-full overflow-hidden" style={{background:C.raised}}>
                   <div className="h-full rounded-full progress-fill" style={{width:`${Math.min(100,f.wasteKg/7.2*100)}%`,background:C.red}}></div>
                 </div>
               </div>
-              <span className="w-12 text-right" style={{fontFamily:C.mono,fontSize:10,color:C.muted}}>{Math.round(f.waste/f.prepared*100)}%</span>
+              <span className="w-12 text-right" style={{fontFamily:C.mono,fontSize:12,color:C.muted}}>{Math.round(f.waste/f.prepared*100)}%</span>
             </div>
           ))}
         </div>
       </div>
 
       <div className="grid xl:grid-cols-[.8fr_1.2fr] gap-4 mt-4">
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid rgba(226,88,79,.20)`}}>
-          <div className="flex items-center justify-between"><div><div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Smart Alerts</div><div style={{fontSize:11,color:C.muted,marginTop:3}}>Issues that need attention today</div></div><span className="px-2 py-1 rounded-lg" style={{background:"rgba(226,88,79,.08)",color:C.red,fontSize:9}}>3 active</span></div>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid rgba(220,38,38,.20)`}}>
+          <div className="flex items-center justify-between"><div><div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Smart Alerts</div><div style={{fontSize:12,color:C.muted,marginTop:3}}>Issues that need attention today</div></div><span className="px-2 py-1 rounded-lg" style={{background:"rgba(220,38,38,.08)",color:C.red,fontSize:12}}>3 active</span></div>
           <div className="flex flex-col gap-3 mt-5">
             {[
               ["triangle-alert","Waste Risk","Chicken Rice is above the safe production range.",C.red,"recommendation"],
               ["clock-3","Expiry Alert","Chicken Breast and Cream should be used first.",C.amber,"inventory"],
               ["trending-up","Waste Increase","Lunch-period waste is trending above the weekly average.",C.blue,"analytics"]
-            ].map(([ic,t,d,c,p])=><button key={t} onClick={()=>setPage(p)} className="text-left p-3 rounded-xl cursor-pointer" style={{background:C.raised,border:`1px solid ${C.border}`}}><div className="flex gap-3"><Icon name={ic} size={16} color={c}/><div><div style={{fontSize:11,fontWeight:700}}>{t}</div><div style={{fontSize:9.5,color:C.muted,lineHeight:1.5,marginTop:2}}>{d}</div></div></div></button>)}
+            ].map(([ic,t,d,c,p])=><button key={t} onClick={()=>setPage(p)} className="text-left p-3 rounded-lg cursor-pointer" style={{background:C.raised,border:`1px solid ${C.border}`}}><div className="flex gap-3"><Icon name={ic} size={16} color={c}/><div><div style={{fontSize:12,fontWeight:700}}>{t}</div><div style={{fontSize:12,color:C.muted,lineHeight:1.5,marginTop:2}}>{d}</div></div></div></button>)}
           </div>
         </div>
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
-          <div className="flex items-center justify-between"><div><div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Menu Performance Matrix</div><div style={{fontSize:11,color:C.muted,marginTop:3}}>Sales vs waste — decide what to keep, optimize or reduce</div></div><span className="px-2 py-1 rounded-lg" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:9}}>15 items</span></div>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+          <div className="flex items-center justify-between"><div><div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Menu Performance Matrix</div><div style={{fontSize:12,color:C.muted,marginTop:3}}>Sales vs waste — decide what to keep, optimize or reduce</div></div><span className="px-2 py-1 rounded-lg" style={{background:"rgba(21,128,61,.08)",color:C.accent,fontSize:12}}>15 items</span></div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-5">
-            {[["Keep","High sales · Low waste",C.accent,"check-circle"],["Optimize","High sales · High waste",C.amber,"sliders-horizontal"],["Review","Low sales · Low waste",C.blue,"search"],["Reduce","Low sales · High waste",C.red,"arrow-down-right"]].map(([t,d,c,ic])=><div key={t} className="p-3 rounded-xl" style={{background:C.raised,border:`1px solid ${C.border}`}}><Icon name={ic} size={15} color={c}/><div style={{fontSize:10.5,fontWeight:700,marginTop:7}}>{t}</div><div style={{fontSize:8.5,color:C.muted,lineHeight:1.4,marginTop:2}}>{d}</div></div>)}
+            {[["Keep","High sales · Low waste",C.accent,"check-circle"],["Optimize","High sales · High waste",C.amber,"sliders-horizontal"],["Review","Low sales · Low waste",C.blue,"search"],["Reduce","Low sales · High waste",C.red,"arrow-down-right"]].map(([t,d,c,ic])=><div key={t} className="p-3 rounded-lg" style={{background:C.raised,border:`1px solid ${C.border}`}}><Icon name={ic} size={15} color={c}/><div style={{fontSize:12,fontWeight:700,marginTop:7}}>{t}</div><div style={{fontSize:12,color:C.muted,lineHeight:1.4,marginTop:2}}>{d}</div></div>)}
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">{FOOD_ITEMS.slice(0,8).map(f=>{const highSales=f.sold/f.prepared>=.78, highWaste=f.waste/f.prepared>=.18; const label=highSales?(highWaste?"Optimize":"Keep"):(highWaste?"Reduce":"Review"); const color=label==="Keep"?C.accent:label==="Optimize"?C.amber:label==="Reduce"?C.red:C.blue; return <span key={f.id} className="px-2.5 py-1.5 rounded-lg" style={{background:`${color}12`,color,fontSize:9}}>{f.name} · {label}</span>})}</div>
+          <div className="mt-4 flex flex-wrap gap-2">{FOOD_ITEMS.slice(0,8).map(f=>{const highSales=f.sold/f.prepared>=.78, highWaste=f.waste/f.prepared>=.18; const label=highSales?(highWaste?"Optimize":"Keep"):(highWaste?"Reduce":"Review"); const color=label==="Keep"?C.accent:label==="Optimize"?C.amber:label==="Reduce"?C.red:C.blue; return <span key={f.id} className="px-2.5 py-1.5 rounded-lg" style={{background:`${color}12`,color,fontSize:12}}>{f.name} · {label}</span>})}</div>
         </div>
       </div>
     </div>
@@ -705,8 +590,8 @@ function MiniChart() {
     <div className="h-44 flex items-end gap-2">
       {values.map((v,i)=>(
         <div key={i} className="flex-1 h-full flex flex-col justify-end items-center gap-2">
-          <div className="w-full max-w-8 rounded-t-lg chart-bar" style={{height:`${v/max*82}%`,background:i===values.length-1?C.accent:"rgba(143,209,79,.28)"}}></div>
-          <span style={{fontSize:8,color:C.muted}}>{i===13?"Today":`D${i+1}`}</span>
+          <div className="w-full max-w-8 rounded-t-lg chart-bar" style={{height:`${v/max*82}%`,background:i===values.length-1?C.accent:"rgba(21,128,61,.28)"}}></div>
+          <span style={{fontSize:12,color:C.muted}}>{i===13?"Today":`D${i+1}`}</span>
         </div>
       ))}
     </div>
@@ -715,13 +600,13 @@ function MiniChart() {
 
 function ImpactCard({icon,title,value,label,accent,progress}) {
   return (
-    <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+    <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
       <div className="flex items-center gap-2">
         <Icon name={icon} size={17} color={accent}/>
         <span style={{fontSize:12,color:C.muted}}>{title}</span>
       </div>
       <div className="mt-4" style={{fontFamily:C.mono,fontSize:21,fontWeight:700}}>{value}</div>
-      <div className="mt-1" style={{fontSize:10.5,color:C.muted}}>{label}</div>
+      <div className="mt-1" style={{fontSize:12,color:C.muted}}>{label}</div>
       {progress!==undefined && <div className="mt-4 h-1.5 rounded-full overflow-hidden" style={{background:C.raised}}><div className="h-full rounded-full progress-fill" style={{width:`${progress}%`,background:accent}}></div></div>}
     </div>
   );
@@ -751,7 +636,7 @@ function Production({stats,setStats,toast}) {
     <div className="page-enter">
       <SectionTitle eyebrow="Operations" title="Production Tracking" description="Measure exactly what the kitchen prepares — every batch becomes useful data."/>
       <div className="grid xl:grid-cols-[.8fr_1.2fr] gap-4">
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div className="flex items-center gap-2 mb-5"><Icon name="scan-line" size={18} color={C.accent}/><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Register Prepared Food</h2></div>
           <div className="flex flex-col gap-4">
             <SelectField label="Food Item" value={item} onChange={setItem} options={FOOD_ITEMS.map(x=>x.name)}/>
@@ -760,26 +645,26 @@ function Production({stats,setStats,toast}) {
             <InputField label="Optional Note" value={note} onChange={setNote} placeholder="Breakfast rush / normal day..."/>
             <Button onClick={add} icon="plus">Add Production Batch</Button>
           </div>
-          <div className="mt-5 p-3 rounded-xl" style={{background:C.raised,fontSize:10.5,color:C.muted,lineHeight:1.6}}>
+          <div className="mt-5 p-3 rounded-lg" style={{background:C.raised,fontSize:12,color:C.muted,lineHeight:1.6}}>
             <Icon name="info" size={13} color={C.accent}/> Record the quantity before service starts. Later, sales and waste records can be compared with this batch.
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div className="flex items-center justify-between mb-5">
-            <div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Today's Production</h2><p style={{fontSize:11,color:C.muted}}>Latest recorded kitchen batches</p></div>
-            <span className="px-2.5 py-1 rounded-lg" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:10}}>{records.length} batches</span>
+            <div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Today's Production</h2><p style={{fontSize:12,color:C.muted}}>Latest recorded kitchen batches</p></div>
+            <span className="px-2.5 py-1 rounded-lg" style={{background:"rgba(21,128,61,.08)",color:C.accent,fontSize:12}}>{records.length} batches</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead><tr style={{borderBottom:`1px solid ${C.border}`,color:C.muted,fontSize:9}}>
+              <thead><tr style={{borderBottom:`1px solid ${C.border}`,color:C.muted,fontSize:12}}>
                 <th className="text-left pb-3 font-medium">FOOD</th><th className="text-right pb-3 font-medium">PORTIONS</th><th className="text-right pb-3 font-medium">WEIGHT</th><th className="text-right pb-3 font-medium">TIME</th>
               </tr></thead>
               <tbody>{records.map(r=><tr key={r.id} style={{borderBottom:`1px solid ${C.border}`}}>
                 <td className="py-3" style={{fontSize:12,fontWeight:600}}>{r.item}</td>
-                <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:11}}>{r.qty}</td>
-                <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:11,color:C.muted}}>{r.weight?`${r.weight} kg`:"—"}</td>
-                <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:10,color:C.muted}}>{r.time}</td>
+                <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:12}}>{r.qty}</td>
+                <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:12,color:C.muted}}>{r.weight?`${r.weight} kg`:"—"}</td>
+                <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:12,color:C.muted}}>{r.time}</td>
               </tr>)}</tbody>
             </table>
           </div>
@@ -818,7 +703,7 @@ function Sales({stats,setStats,toast}) {
         <StatCard icon="percent" label="Sell-through" value={`${Math.min(100,Math.round(stats.sold/Math.max(1,stats.prepared)*100))}%`} accent={C.blue}/>
       </div>
       <div className="grid xl:grid-cols-[.75fr_1.25fr] gap-4">
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div className="flex items-center gap-2 mb-5"><Icon name="shopping-cart" size={18} color={C.accent}/><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Register Sales</h2></div>
           <div className="flex flex-col gap-4">
             <SelectField label="Food Item" value={item} onChange={v=>{setItem(v);const f=FOOD_ITEMS.find(x=>x.name===v);if(f)setPrice(f.price)}} options={FOOD_ITEMS.map(x=>x.name)}/>
@@ -827,12 +712,12 @@ function Sales({stats,setStats,toast}) {
             <Button onClick={add} icon="check">Record Sale</Button>
           </div>
         </div>
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
-          <div className="mb-4"><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Sales Records</h2><p style={{fontSize:11,color:C.muted}}>Used later by the recommendation engine.</p></div>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+          <div className="mb-4"><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Sales Records</h2><p style={{fontSize:12,color:C.muted}}>Used later by the recommendation engine.</p></div>
           <div className="flex flex-col">{records.slice(0,7).map(r=><div key={r.id} className="flex items-center gap-3 py-3" style={{borderBottom:`1px solid ${C.border}`}}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:C.raised}}><Icon name="receipt" size={14} color={C.muted}/></div>
-            <div className="flex-1"><div style={{fontSize:12,fontWeight:600}}>{r.item}</div><div style={{fontSize:9,color:C.muted}}>{r.time}</div></div>
-            <div className="text-right"><div style={{fontFamily:C.mono,fontSize:11}}>{r.qty} portions</div><div style={{fontFamily:C.mono,fontSize:9,color:C.accent}}>{r.revenue.toLocaleString()} ₸</div></div>
+            <div className="flex-1"><div style={{fontSize:12,fontWeight:600}}>{r.item}</div><div style={{fontSize:12,color:C.muted}}>{r.time}</div></div>
+            <div className="text-right"><div style={{fontFamily:C.mono,fontSize:12}}>{r.qty} portions</div><div style={{fontFamily:C.mono,fontSize:12,color:C.accent}}>{r.revenue.toLocaleString()} ₸</div></div>
           </div>)}</div>
         </div>
       </div>
@@ -865,9 +750,9 @@ function WasteLog({stats,toast}) {
   return (
     <div className="page-enter">
       <SectionTitle eyebrow="Critical Data" title="Waste Log" description="Every kilogram has a reason. Recording the reason makes prevention possible."
-        action={<div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{background:"rgba(226,88,79,.08)",border:"1px solid rgba(226,88,79,.18)",color:C.red,fontSize:10}}><Icon name="alert-triangle" size={14}/> {stats.wasteKg.toFixed(1)} kg today</div>}/>
+        action={<div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{background:"rgba(220,38,38,.08)",border:"1px solid rgba(220,38,38,.18)",color:C.red,fontSize:12}}><Icon name="alert-triangle" size={14}/> {stats.wasteKg.toFixed(1)} kg today</div>}/>
       <div className="grid xl:grid-cols-[.82fr_1.18fr] gap-4">
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div className="flex items-center gap-2 mb-5"><Icon name="trash-2" size={18} color={C.red}/><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Log Food Waste</h2></div>
           <div className="flex flex-col gap-4">
             <SelectField label="Food Item" value={item} onChange={setItem} options={FOOD_ITEMS.map(x=>x.name)}/>
@@ -878,17 +763,17 @@ function WasteLog({stats,toast}) {
             <Button variant="danger" onClick={add} icon="trash-2">Log Waste Entry</Button>
           </div>
         </div>
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
-          <div className="flex items-center justify-between mb-4"><div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Recent Waste Records</h2><p style={{fontSize:11,color:C.muted}}>These records feed analytics and recommendations.</p></div><span style={{fontFamily:C.mono,fontSize:10,color:C.muted}}>{logs.length} records</span></div>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+          <div className="flex items-center justify-between mb-4"><div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Recent Waste Records</h2><p style={{fontSize:12,color:C.muted}}>These records feed analytics and recommendations.</p></div><span style={{fontFamily:C.mono,fontSize:12,color:C.muted}}>{logs.length} records</span></div>
           <div className="overflow-x-auto"><table className="w-full">
-            <thead><tr style={{borderBottom:`1px solid ${C.border}`,fontSize:9,color:C.muted}}>
+            <thead><tr style={{borderBottom:`1px solid ${C.border}`,fontSize:12,color:C.muted}}>
               <th className="text-left pb-3">FOOD</th><th className="text-right pb-3">WEIGHT</th><th className="text-right pb-3">REASON</th><th className="text-right pb-3">TIME</th>
             </tr></thead>
             <tbody>{logs.map(l=><tr key={l.id} style={{borderBottom:`1px solid ${C.border}`}}>
-              <td className="py-3"><div style={{fontSize:11.5,fontWeight:600}}>{l.item}</div><div style={{fontSize:9,color:C.muted}}>{l.stage}</div></td>
-              <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:11,color:C.red}}>{l.amount} kg</td>
-              <td className="py-3 text-right"><span className="px-2 py-1 rounded-lg" style={{background:C.raised,color:C.muted,fontSize:9}}>{l.reason}</span></td>
-              <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:9,color:C.muted}}>{l.time}</td>
+              <td className="py-3"><div style={{fontSize:12,fontWeight:600}}>{l.item}</div><div style={{fontSize:12,color:C.muted}}>{l.stage}</div></td>
+              <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:12,color:C.red}}>{l.amount} kg</td>
+              <td className="py-3 text-right"><span className="px-2 py-1 rounded-lg" style={{background:C.raised,color:C.muted,fontSize:12}}>{l.reason}</span></td>
+              <td className="py-3 text-right" style={{fontFamily:C.mono,fontSize:12,color:C.muted}}>{l.time}</td>
             </tr>)}</tbody>
           </table></div>
         </div>
@@ -921,19 +806,19 @@ function Inventory({toast}) {
         <StatCard icon="clock-3" label="Expiring Soon" value={`${items.filter(x=>x.soon).length}`} accent={C.amber}/>
         <StatCard icon="recycle" label="FEFO Status" value="Active" accent={C.blue}/>
       </div>
-      <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+      <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
         <div className="flex flex-col sm:flex-row gap-3 justify-between mb-5">
-          <div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Stock Monitor</h2><p style={{fontSize:11,color:C.muted}}>FEFO = First Expired, First Out</p></div>
-          <div className="flex gap-2 items-center"><select value={category} onChange={e=>setCategory(e.target.value)} className="px-3 py-2 rounded-xl outline-none" style={{background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:10}}>{categories.map(c=><option key={c}>{c}</option>)}</select><div className="relative"><Icon name="search" size={14} color={C.muted}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search ingredient..." className="pl-8 pr-3 py-2 rounded-xl outline-none" style={{width:180,background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:11}}/></div></div>
+          <div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Stock Monitor</h2><p style={{fontSize:12,color:C.muted}}>FEFO = First Expired, First Out</p></div>
+          <div className="flex gap-2 items-center"><select value={category} onChange={e=>setCategory(e.target.value)} className="px-3 py-2 rounded-lg outline-none" style={{background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:12}}>{categories.map(c=><option key={c}>{c}</option>)}</select><div className="relative"><Icon name="search" size={14} color={C.muted}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search ingredient..." className="pl-8 pr-3 py-2 rounded-lg outline-none" style={{width:180,background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:12}}/></div></div>
         </div>
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
           {filtered.map(x=>(
-            <div key={x.name} className="p-4 rounded-xl" style={{background:C.raised,border:`1px solid ${x.status==="Low"?"rgba(226,88,79,.25)":C.border}`}}>
-              <div className="flex justify-between"><div><div style={{fontSize:12,fontWeight:700}}>{x.name}</div><div style={{fontSize:9,color:C.muted}}>{x.category}</div></div>
-                <span className="px-2 py-1 rounded-lg" style={{fontSize:8,color:x.status==="Low"?C.red:C.accent,background:x.status==="Low"?"rgba(226,88,79,.08)":"rgba(143,209,79,.07)"}}>{x.status}</span></div>
-              <div className="mt-4 flex items-end justify-between"><div><span style={{fontFamily:C.mono,fontSize:20,fontWeight:700}}>{x.stock}</span> <span style={{fontSize:10,color:C.muted}}>{x.unit}</span></div><div className="text-right"><div style={{fontSize:9,color:C.muted}}>Expiry</div><div style={{fontFamily:C.mono,fontSize:10}}>{x.expiry}</div></div></div>
-              <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{background:"#0C140F"}}><div className="h-full rounded-full" style={{width:`${Math.min(100,x.stock/(x.min*2)*100)}%`,background:x.status==="Low"?C.red:C.accent}}></div></div>
-              {x.status==="Low" && <button onClick={()=>restock(x.name)} className="mt-3 w-full py-2 rounded-lg cursor-pointer" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:10,fontWeight:600}}>Mark Restocked</button>}
+            <div key={x.name} className="p-4 rounded-lg" style={{background:C.raised,border:`1px solid ${x.status==="Low"?"rgba(220,38,38,.25)":C.border}`}}>
+              <div className="flex justify-between"><div><div style={{fontSize:12,fontWeight:700}}>{x.name}</div><div style={{fontSize:12,color:C.muted}}>{x.category}</div></div>
+                <span className="px-2 py-1 rounded-lg" style={{fontSize:12,color:x.status==="Low"?C.red:C.accent,background:x.status==="Low"?"rgba(220,38,38,.08)":"rgba(21,128,61,.07)"}}>{x.status}</span></div>
+              <div className="mt-4 flex items-end justify-between"><div><span style={{fontFamily:C.mono,fontSize:20,fontWeight:700}}>{x.stock}</span> <span style={{fontSize:12,color:C.muted}}>{x.unit}</span></div><div className="text-right"><div style={{fontSize:12,color:C.muted}}>Expiry</div><div style={{fontFamily:C.mono,fontSize:12}}>{x.expiry}</div></div></div>
+              <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{background:"#E3E7EC"}}><div className="h-full rounded-full" style={{width:`${Math.min(100,x.stock/(x.min*2)*100)}%`,background:x.status==="Low"?C.red:C.accent}}></div></div>
+              {x.status==="Low" && <button onClick={()=>restock(x.name)} className="mt-3 w-full py-2 rounded-lg cursor-pointer" style={{background:"rgba(21,128,61,.08)",color:C.accent,fontSize:12,fontWeight:600}}>Mark Restocked</button>}
             </div>
           ))}
         </div>
@@ -971,16 +856,16 @@ function Recommendation({stats,toast}) {
   return (
     <div className="page-enter">
       <SectionTitle eyebrow="Intelligence" title="Smart Recommendation" description="Turn historical production and sales into a practical plan for tomorrow."
-        action={<div className="px-3 py-2 rounded-xl flex items-center gap-2" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:10}}><Icon name="sparkles" size={14}/> Rule-based prediction demo</div>}/>
+        action={<div className="px-3 py-2 rounded-lg flex items-center gap-2" style={{background:"rgba(21,128,61,.08)",color:C.accent,fontSize:12}}><Icon name="info" size={14}/> Rule-based forecast</div>}/>
 
       <div className="grid xl:grid-cols-[1.15fr_.85fr] gap-4">
-        <div className="p-6 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-6 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{background:"rgba(143,209,79,.10)"}}><Icon name="brain-circuit" size={21} color={C.accent}/></div>
-              <div><div style={{fontFamily:C.heading,fontSize:16,fontWeight:700}}>Tomorrow's Production Plan</div><div style={{fontSize:10.5,color:C.muted}}>Based on recent sales + waste patterns</div></div>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{background:"rgba(21,128,61,.10)"}}><Icon name="trending-up" size={21} color={C.accent}/></div>
+              <div><div style={{fontFamily:C.heading,fontSize:16,fontWeight:700}}>Tomorrow's Production Plan</div><div style={{fontSize:12,color:C.muted}}>Based on recent sales + waste patterns</div></div>
             </div>
-            <div className="px-2.5 py-1.5 rounded-full" style={{background:`${riskColor}15`,color:riskColor,fontSize:9,fontWeight:700}}>● {risk} waste risk</div>
+            <div className="px-2.5 py-1.5 rounded-full" style={{background:`${riskColor}15`,color:riskColor,fontSize:12,fontWeight:700}}>● {risk} waste risk</div>
           </div>
           <div className="mt-6"><SelectField label="Select Food Item" value={selected} onChange={(v)=>{setSelected(v);setApplied(false)}} options={FOOD_ITEMS.map(x=>x.name)}/></div>
           <div className="grid sm:grid-cols-3 gap-3 mt-5">
@@ -988,34 +873,34 @@ function Recommendation({stats,toast}) {
             <MetricBox label="Current prep" value={`${item.prepared}`} sub="portions/day" accent={C.red}/>
             <MetricBox label="Recommended" value={`${recommended}`} sub="portions tomorrow" accent={C.accent}/>
           </div>
-          <div className="mt-5 p-4 rounded-xl" style={{background:C.raised,border:`1px solid ${C.border}`}}>
+          <div className="mt-5 p-4 rounded-lg" style={{background:C.raised,border:`1px solid ${C.border}`}}>
             <div className="flex items-start gap-3"><Icon name="lightbulb" size={18} color={C.accent}/><div style={{fontSize:12.5,lineHeight:1.7}}><b>Recommendation:</b> Prepare around <b style={{color:C.accent}}>{recommended} portions</b> of {item.name} tomorrow. This keeps a small safety buffer above recent demand without repeating the current overproduction level.</div></div>
           </div>
-          <div className="mt-4 p-4 rounded-xl" style={{background:"rgba(93,173,226,.055)",border:`1px solid rgba(93,173,226,.18)`}}>
+          <div className="mt-4 p-4 rounded-lg" style={{background:"rgba(37,99,235,.055)",border:`1px solid rgba(37,99,235,.18)`}}>
             <div className="flex items-center gap-2"><Icon name="help-circle" size={16} color={C.blue}/><span style={{fontFamily:C.heading,fontSize:12.5,fontWeight:700}}>Why this recommendation?</span></div>
-            <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 mt-3">{reasonLines.map((x,i)=><div key={i} className="flex gap-2" style={{fontSize:10.5,color:C.muted,lineHeight:1.5}}><span style={{color:C.blue}}>•</span><span>{x}</span></div>)}</div>
+            <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 mt-3">{reasonLines.map((x,i)=><div key={i} className="flex gap-2" style={{fontSize:12,color:C.muted,lineHeight:1.5}}><span style={{color:C.blue}}>•</span><span>{x}</span></div>)}</div>
           </div>
           <Button className="w-full mt-4" onClick={()=>savePlan(recommended,0,"Recommendation accepted for tomorrow's plan.")} icon="check-circle">Accept Recommendation</Button>
-          {applied && <div className="mt-3 px-3 py-2.5 rounded-xl flex items-center gap-2" style={{background:"rgba(143,209,79,.07)",border:`1px solid ${C.accentDim}`,fontSize:10,color:C.accent}}><Icon name="check-circle-2" size={14}/> Plan marked for tomorrow. Plan saved to the database.</div>}
+          {applied && <div className="mt-3 px-3 py-2.5 rounded-lg flex items-center gap-2" style={{background:"rgba(21,128,61,.07)",border:`1px solid ${C.accentDim}`,fontSize:12,color:C.accent}}><Icon name="check-circle-2" size={14}/> Plan marked for tomorrow. Plan saved to the database.</div>}
         </div>
 
-        <div className="p-6 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
-          <div className="flex items-center justify-between"><div><div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>What-if Simulator</div><p className="mt-1" style={{fontSize:11,color:C.muted}}>Test a production reduction before changing the kitchen plan.</p></div><span className="px-2 py-1 rounded-lg" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontSize:9}}>LIVE MODEL</span></div>
-          <div className="mt-7"><div className="flex justify-between" style={{fontSize:11}}><span>Reduce current production by</span><b style={{color:C.accent}}>{scenario}%</b></div><input type="range" min="0" max="30" value={scenario} onChange={e=>{setScenario(Number(e.target.value));setApplied(false)}} className="w-full mt-4" style={{accentColor:C.accent}}/></div>
+        <div className="p-6 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+          <div className="flex items-center justify-between"><div><div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>What-if Simulator</div><p className="mt-1" style={{fontSize:12,color:C.muted}}>Test a production reduction before changing the kitchen plan.</p></div><span className="px-2 py-1 rounded-lg" style={{background:"rgba(21,128,61,.08)",color:C.accent,fontSize:12}}>SIMULATOR</span></div>
+          <div className="mt-7"><div className="flex justify-between" style={{fontSize:12}}><span>Reduce current production by</span><b style={{color:C.accent}}>{scenario}%</b></div><input type="range" min="0" max="30" value={scenario} onChange={e=>{setScenario(Number(e.target.value));setApplied(false)}} className="w-full mt-4" style={{accentColor:C.accent}}/></div>
           <div className="grid grid-cols-2 gap-3 mt-7">
             <MetricBox label="Projected waste" value={`${projectedWaste.toFixed(1)}`} sub="portions" accent={C.red}/>
             <MetricBox label="Waste saved" value={`${savedKg}`} sub="kg / day" accent={C.accent}/>
             <MetricBox label="Est. cost saved" value={`${savedMoney.toLocaleString()} ₸`} sub="per day" accent={C.amber}/>
             <MetricBox label="Annualized*" value={`${Math.round(savedMoney*300/1000)}k ₸`} sub="illustrative" accent={C.blue}/>
           </div>
-          <div className="mt-5 p-3 rounded-xl" style={{background:C.raised,border:`1px solid ${C.border}`}}><div className="flex items-center gap-2" style={{fontSize:10.5,fontWeight:700}}><Icon name="calculator" size={14} color={C.accent}/> Scenario result</div><div className="mt-2" style={{fontSize:10,color:C.muted,lineHeight:1.6}}>Production: <b style={{color:C.text}}>{item.prepared} → {Math.max(1,Math.round(item.prepared*(1-scenario/100)))} portions</b> · Waste reduction: <b style={{color:C.accent}}>{scenario}%</b></div></div>
+          <div className="mt-5 p-3 rounded-lg" style={{background:C.raised,border:`1px solid ${C.border}`}}><div className="flex items-center gap-2" style={{fontSize:12,fontWeight:700}}><Icon name="calculator" size={14} color={C.accent}/> Scenario result</div><div className="mt-2" style={{fontSize:12,color:C.muted,lineHeight:1.6}}>Production: <b style={{color:C.text}}>{item.prepared} → {Math.max(1,Math.round(item.prepared*(1-scenario/100)))} portions</b> · Waste reduction: <b style={{color:C.accent}}>{scenario}%</b></div></div>
           <Button className="w-full mt-4" onClick={applyScenario} icon="check-circle" variant="subtle">Apply Recommendation</Button>
-          <div className="mt-3" style={{fontSize:9,color:C.muted}}>*Projection only. Real results depend on actual records and operating days.</div>
+          <div className="mt-3" style={{fontSize:12,color:C.muted}}>*Projection only. Real results depend on actual records and operating days.</div>
         </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mt-4">
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${riskColor}35`}}><div className="flex items-center gap-2"><Icon name="triangle-alert" size={17} color={riskColor}/><div style={{fontFamily:C.heading,fontSize:13,fontWeight:700}}>Waste Risk Alert</div></div><div className="mt-3" style={{fontSize:11,color:C.muted,lineHeight:1.6}}><b style={{color:riskColor}}>{risk} risk:</b> {item.name} may create avoidable waste if production stays at {item.prepared} portions.</div><button onClick={()=>setScenario(Math.min(30,Math.max(10,Math.round((item.waste/item.prepared)*100))))} className="mt-4 cursor-pointer" style={{fontSize:10,color:C.accent}}>Simulate safer plan →</button></div>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${riskColor}35`}}><div className="flex items-center gap-2"><Icon name="triangle-alert" size={17} color={riskColor}/><div style={{fontFamily:C.heading,fontSize:13,fontWeight:700}}>Waste Risk Alert</div></div><div className="mt-3" style={{fontSize:12,color:C.muted,lineHeight:1.6}}><b style={{color:riskColor}}>{risk} risk:</b> {item.name} may create avoidable waste if production stays at {item.prepared} portions.</div><button onClick={()=>setScenario(Math.min(30,Math.max(10,Math.round((item.waste/item.prepared)*100))))} className="mt-4 cursor-pointer" style={{fontSize:12,color:C.accent}}>Simulate safer plan →</button></div>
         <FeatureCard icon="calendar-days" title="Day-of-week factor" text="Different demand patterns can be stored for Monday, Friday, weekends and special events."/>
         <FeatureCard icon="shopping-basket" title="Smart purchasing" text="Production + inventory + predicted demand can suggest how much to purchase."/>
       </div>  
@@ -1032,11 +917,11 @@ function Environment({stats}) {
   return (
     <div className="page-enter">
       <SectionTitle eyebrow="Sustainability" title="Environmental Impact" description="Translate measured food waste into an illustrative environmental footprint."/>
-      <div className="p-5 rounded-2xl mb-4" style={{background:"linear-gradient(135deg,#101A13,#0D1711)",border:`1px solid ${C.border}`}}>
+      <div className="p-5 rounded-xl mb-4" style={{background:"#FFFFFF",border:`1px solid ${C.border}`}}>
         <div className="flex flex-col md:flex-row md:items-center gap-5">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{background:"rgba(93,173,226,.09)"}}><Icon name="globe-2" size={28} color={C.blue}/></div>
-          <div className="flex-1"><div style={{fontFamily:C.heading,fontSize:16,fontWeight:700}}>Every kilogram of waste is more than a number.</div><p className="mt-1" style={{fontSize:11,color:C.muted,lineHeight:1.65}}>EcoBite can show estimated CO₂e and water-footprint equivalents so managers can see the environmental side of operational decisions.</p></div>
-          <div className="px-4 py-3 rounded-xl" style={{background:C.raised,fontSize:9,color:C.muted,maxWidth:240}}>Illustrative factors shown here are demo values. Final academic calculations should use cited datasets.</div>
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center" style={{background:"rgba(37,99,235,.09)"}}><Icon name="globe-2" size={28} color={C.blue}/></div>
+          <div className="flex-1"><div style={{fontFamily:C.heading,fontSize:16,fontWeight:700}}>Every kilogram of waste is more than a number.</div><p className="mt-1" style={{fontSize:12,color:C.muted,lineHeight:1.65}}>EcoBite can show estimated CO₂e and water-footprint equivalents so managers can see the environmental side of operational decisions.</p></div>
+          <div className="px-4 py-3 rounded-lg" style={{background:C.raised,fontSize:12,color:C.muted,maxWidth:240}}>Illustrative factors shown here are demo values. Final academic calculations should use cited datasets.</div>
         </div>
       </div>
       <div className="grid md:grid-cols-3 gap-4">
@@ -1045,13 +930,13 @@ function Environment({stats}) {
         <ImpactCard icon="leaf" title="Green Score" value="86 / 100" label="current operational score" accent={C.accent} progress={86}/>
       </div>
       <div className="grid xl:grid-cols-2 gap-4 mt-4">
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Waste → Impact Breakdown</div>
           <div className="flex flex-col gap-4 mt-5">
-            {snap.reasons.slice(0,4).map((r,i)=>[r.reason,r.pct,[C.red,C.amber,C.blue,C.purple][i]]).map(([x,v,c])=><div key={x}><div className="flex justify-between mb-1.5" style={{fontSize:10.5}}><span>{x}</span><span style={{fontFamily:C.mono,color:C.muted}}>{v}%</span></div><div className="h-2 rounded-full" style={{background:C.raised}}><div className="h-full rounded-full" style={{width:`${v}%`,background:c}}></div></div></div>)}
+            {snap.reasons.slice(0,4).map((r,i)=>[r.reason,r.pct,[C.red,C.amber,C.blue,C.purple][i]]).map(([x,v,c])=><div key={x}><div className="flex justify-between mb-1.5" style={{fontSize:12}}><span>{x}</span><span style={{fontFamily:C.mono,color:C.muted}}>{v}%</span></div><div className="h-2 rounded-full" style={{background:C.raised}}><div className="h-full rounded-full" style={{width:`${v}%`,background:c}}></div></div></div>)}
           </div>
         </div>
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>How EcoBite Creates Impact</div>
           <div className="flex flex-col gap-3 mt-5">
             {[
@@ -1059,7 +944,7 @@ function Environment({stats}) {
               ["2","Understand","Find the biggest waste reasons and items."],
               ["3","Predict","Estimate future demand from historical data."],
               ["4","Prevent","Change tomorrow's production and purchasing."],
-            ].map(([n,t,d])=><div key={n} className="flex gap-3"><div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{background:"rgba(143,209,79,.08)",color:C.accent,fontFamily:C.mono,fontSize:10}}>{n}</div><div><div style={{fontSize:11.5,fontWeight:700}}>{t}</div><div style={{fontSize:10,color:C.muted,marginTop:2}}>{d}</div></div></div>)}
+            ].map(([n,t,d])=><div key={n} className="flex gap-3"><div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{background:"rgba(21,128,61,.08)",color:C.accent,fontFamily:C.mono,fontSize:12}}>{n}</div><div><div style={{fontSize:12,fontWeight:700}}>{t}</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>{d}</div></div></div>)}
           </div>
         </div>
       </div>
@@ -1080,7 +965,7 @@ function Analytics({stats}) {
   return (
     <div className="page-enter">
       <SectionTitle eyebrow="Decision Center" title="Reports & Analytics" description="Use historical data to understand patterns, losses and improvement opportunities."
-        action={<select value={period} onChange={e=>setPeriod(e.target.value)} className="px-3 py-2 rounded-xl outline-none" style={{background:C.surface,border:`1px solid ${C.border}`,color:C.text,fontSize:11}}><option>7 days</option><option>14 days</option><option>30 days</option></select>}/>
+        action={<select value={period} onChange={e=>setPeriod(e.target.value)} className="px-3 py-2 rounded-lg outline-none" style={{background:C.surface,border:`1px solid ${C.border}`,color:C.text,fontSize:12}}><option>7 days</option><option>14 days</option><option>30 days</option></select>}/>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <StatCard icon="database" label="Records Analyzed" value={`${A.records||0}`} sub="+84" accent={C.accent}/>
         <StatCard icon="trash-2" label="Waste This Period" value={`${totalWaste.toFixed(1)} kg`} sub="-18%" accent={C.red}/>
@@ -1088,16 +973,16 @@ function Analytics({stats}) {
         <StatCard icon="target" label="Goal Progress" value="72%" sub="+9%" accent={C.blue}/>
       </div>
       <div className="grid xl:grid-cols-[1.25fr_.75fr] gap-4 mt-4">
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
-          <div className="mb-5"><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Waste by Food Item</h2><p style={{fontSize:11,color:C.muted}}>Kilograms recorded in the selected period</p></div>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+          <div className="mb-5"><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Waste by Food Item</h2><p style={{fontSize:12,color:C.muted}}>Kilograms recorded in the selected period</p></div>
           <div className="flex flex-col gap-4">
-            {items.map(f=><div key={f.id} className="flex items-center gap-3"><div className="w-28 shrink-0" style={{fontSize:10.5}}>{f.name}</div><div className="flex-1 h-7 rounded-lg overflow-hidden relative" style={{background:C.raised}}><div className="h-full rounded-lg" style={{width:`${f.wasteKg/Math.max(...items.map(x=>x.wasteKg),1)*100}%`,background:"rgba(226,88,79,.72)"}}></div><span className="absolute right-2 top-1/2 -translate-y-1/2" style={{fontFamily:C.mono,fontSize:9}}>{f.wasteKg} kg</span></div></div>)}
+            {items.map(f=><div key={f.id} className="flex items-center gap-3"><div className="w-28 shrink-0" style={{fontSize:12}}>{f.name}</div><div className="flex-1 h-7 rounded-lg overflow-hidden relative" style={{background:C.raised}}><div className="h-full rounded-lg" style={{width:`${f.wasteKg/Math.max(...items.map(x=>x.wasteKg),1)*100}%`,background:"rgba(220,38,38,.72)"}}></div><span className="absolute right-2 top-1/2 -translate-y-1/2" style={{fontFamily:C.mono,fontSize:12}}>{f.wasteKg} kg</span></div></div>)}
           </div>
         </div>
-        <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
           <div style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>Waste Reasons</div>
           <div className="mt-6 flex justify-center"><Donut parts={A.reasons.slice(0,4).map((r,i)=>[r.pct,[C.red,C.amber,C.blue,C.purple][i]])}/></div>
-          <div className="grid grid-cols-2 gap-2 mt-5">{A.reasons.slice(0,4).map((r,i)=>[r.reason,r.pct,[C.red,C.amber,C.blue,C.purple][i]]).map(([t,v,c])=><div key={t} className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{background:c}}></span><span style={{fontSize:9,color:C.muted}}>{t}</span><span className="ml-auto" style={{fontFamily:C.mono,fontSize:9}}>{v}%</span></div>)}</div>
+          <div className="grid grid-cols-2 gap-2 mt-5">{A.reasons.slice(0,4).map((r,i)=>[r.reason,r.pct,[C.red,C.amber,C.blue,C.purple][i]]).map(([t,v,c])=><div key={t} className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{background:c}}></span><span style={{fontSize:12,color:C.muted}}>{t}</span><span className="ml-auto" style={{fontFamily:C.mono,fontSize:12}}>{v}%</span></div>)}</div>
         </div>
       </div>
       <div className="grid md:grid-cols-3 gap-4 mt-4">
@@ -1111,10 +996,10 @@ function Analytics({stats}) {
 
 function Donut({parts=[]}) {
   let a=0; const g=parts.length?parts.map(([p,c])=>{const t=`${c} ${a}% ${a+p}%`;a+=p;return t}).join(","):"#27352B 0 100%";
-  return <div className="w-36 h-36 rounded-full relative flex items-center justify-center" style={{background:`conic-gradient(${g})`}}><div className="w-24 h-24 rounded-full flex flex-col items-center justify-center" style={{background:C.surface}}><span style={{fontFamily:C.mono,fontSize:18,fontWeight:700}}>100%</span><span style={{fontSize:8,color:C.muted}}>classified</span></div></div>;
+  return <div className="w-36 h-36 rounded-full relative flex items-center justify-center" style={{background:`conic-gradient(${g})`}}><div className="w-24 h-24 rounded-full flex flex-col items-center justify-center" style={{background:C.surface}}><span style={{fontFamily:C.mono,fontSize:18,fontWeight:700}}>100%</span><span style={{fontSize:12,color:C.muted}}>classified</span></div></div>;
 }
 function Insight({title,text,icon}) {
-  return <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}><Icon name={icon} size={18} color={C.accent}/><div className="mt-3" style={{fontFamily:C.heading,fontSize:12.5,fontWeight:600}}>{title}</div><p className="mt-2" style={{fontSize:10.5,color:C.muted,lineHeight:1.65}}>{text}</p></div>;
+  return <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}><Icon name={icon} size={18} color={C.accent}/><div className="mt-3" style={{fontFamily:C.heading,fontSize:12.5,fontWeight:600}}>{title}</div><p className="mt-2" style={{fontSize:12,color:C.muted,lineHeight:1.65}}>{text}</p></div>;
 }
 
 /* ---------------- ADMIN ---------------- */
@@ -1141,10 +1026,10 @@ function Admin({toast}) {
         <StatCard icon="database" label="Audit Events" value={`${snap.records||0}`} accent={C.amber}/>
         <StatCard icon="server" label="Database" value="Ready" accent={C.accent}/>
       </div>
-      <div className="p-5 rounded-2xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
-        <div className="flex justify-between mb-4"><div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>User Access</h2><p style={{fontSize:11,color:C.muted}}>Live users from the database.</p></div><Button icon="user-plus" onClick={addUser}>Add User</Button></div>
-        <div className="overflow-x-auto"><table className="w-full"><thead><tr style={{fontSize:9,color:C.muted,borderBottom:`1px solid ${C.border}`}}><th className="text-left pb-3">USER</th><th className="text-left pb-3">EMAIL · ROLE</th><th className="text-left pb-3">STATUS</th><th className="text-right pb-3">ACTION</th></tr></thead>
-          <tbody>{users.map(u=><tr key={u.user_id} style={{borderBottom:`1px solid ${C.border}`}}><td className="py-3" style={{fontSize:11.5,fontWeight:600}}>{u.name}</td><td className="py-3" style={{fontSize:10,color:C.muted}}>{u.email} · {u.role}</td><td className="py-3"><span style={{fontSize:9,color:u.status==="Active"?C.accent:C.red}}>{u.status}</span></td><td className="py-3 text-right"><button onClick={()=>toggle(u)} className="px-2.5 py-1.5 rounded-lg cursor-pointer" style={{background:C.raised,color:C.muted,fontSize:9}}>{u.status==="Active"?"Pause":"Activate"}</button></td></tr>)}</tbody>
+      <div className="p-5 rounded-xl" style={{background:C.surface,border:`1px solid ${C.border}`}}>
+        <div className="flex justify-between mb-4"><div><h2 style={{fontFamily:C.heading,fontSize:15,fontWeight:600}}>User Access</h2><p style={{fontSize:12,color:C.muted}}>Live users from the database.</p></div><Button icon="user-plus" onClick={addUser}>Add User</Button></div>
+        <div className="overflow-x-auto"><table className="w-full"><thead><tr style={{fontSize:12,color:C.muted,borderBottom:`1px solid ${C.border}`}}><th className="text-left pb-3">USER</th><th className="text-left pb-3">EMAIL · ROLE</th><th className="text-left pb-3">STATUS</th><th className="text-right pb-3">ACTION</th></tr></thead>
+          <tbody>{users.map(u=><tr key={u.user_id} style={{borderBottom:`1px solid ${C.border}`}}><td className="py-3" style={{fontSize:12,fontWeight:600}}>{u.name}</td><td className="py-3" style={{fontSize:12,color:C.muted}}>{u.email} · {u.role}</td><td className="py-3"><span style={{fontSize:12,color:u.status==="Active"?C.accent:C.red}}>{u.status}</span></td><td className="py-3 text-right"><button onClick={()=>toggle(u)} className="px-2.5 py-1.5 rounded-lg cursor-pointer" style={{background:C.raised,color:C.muted,fontSize:12}}>{u.status==="Active"?"Pause":"Activate"}</button></td></tr>)}</tbody>
         </table></div>
       </div>
     </div>
@@ -1154,10 +1039,10 @@ function Admin({toast}) {
 /* ---------------- HELPERS ---------------- */
 
 function InputField({label,value,onChange,placeholder,type="text"}) {
-  return <div><label style={{fontSize:10.5,color:C.muted}}>{label}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full mt-1.5 px-3.5 py-2.75 rounded-xl outline-none" style={{height:42,background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:12}}/></div>;
+  return <div><label style={{fontSize:12,color:C.muted}}>{label}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full mt-1.5 px-3.5 py-2.75 rounded-lg outline-none" style={{height:42,background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:12}}/></div>;
 }
 function SelectField({label,value,onChange,options}) {
-  return <div><label style={{fontSize:10.5,color:C.muted}}>{label}</label><select value={value} onChange={e=>onChange(e.target.value)} className="w-full mt-1.5 px-3.5 rounded-xl outline-none" style={{height:42,background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:12}}>{options.map(x=><option key={x}>{x}</option>)}</select></div>;
+  return <div><label style={{fontSize:12,color:C.muted}}>{label}</label><select value={value} onChange={e=>onChange(e.target.value)} className="w-full mt-1.5 px-3.5 rounded-lg outline-none" style={{height:42,background:C.raised,border:`1px solid ${C.border}`,color:C.text,fontSize:12}}>{options.map(x=><option key={x}>{x}</option>)}</select></div>;
 }
 
 /* ---------------- APP ---------------- */
@@ -1235,7 +1120,7 @@ function App() {
       </div>
       <MobileNav active={page} setActive={setPage} role={role}/>
 
-      {toastMsg && <div className="fixed right-4 bottom-20 lg:bottom-6 z-[80] toast px-4 py-3 rounded-xl flex items-center gap-2" style={{background:C.raised,border:`1px solid ${C.accentDim}`,boxShadow:"0 15px 50px rgba(0,0,0,.35)",fontSize:11.5}}><Icon name="check-circle-2" size={16} color={C.accent}/>{toastMsg}</div>}
+      {toastMsg && <div className="fixed right-4 bottom-20 lg:bottom-6 z-[80] toast px-4 py-3 rounded-lg flex items-center gap-2" style={{background:C.raised,border:`1px solid ${C.accentDim}`,boxShadow:"0 15px 50px rgba(15,23,42,.10)",fontSize:12}}><Icon name="check-circle-2" size={16} color={C.accent}/>{toastMsg}</div>}
     </div></Ctx.Provider>
   );
 }
