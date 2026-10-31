@@ -152,6 +152,7 @@ const DEMAND = [24, 31, 28, 35, 29, 38, 42, 36, 44, 40, 48, 43, 51, 46];
 const sb=window.supabase.createClient("https://lrdxfvcrfxufwtwkgcab.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxyZHhmdmNyZnh1Znd0d2tnY2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyMDE2MDcsImV4cCI6MjEwODc3NzYwN30.NxwcQgQOy7nwUwgQ30VHvBsGXmz3ahvPOaaIkWVjYpc");
 const Ctx=React.createContext(null);
 const fmt=t=>new Date(t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+const ls={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const need=r=>{ if(r.error) throw r.error; return r.data; };
 function useQuery(fn,deps){ const [d,setD]=useState([]); const r=()=>fn().then(x=>setD(x||[])).catch(console.error); useEffect(()=>{r()},deps); return [d,r]; }
 
@@ -1162,9 +1163,9 @@ function SelectField({label,value,onChange,options}) {
 /* ---------------- APP ---------------- */
 
 function App() {
-  const [authed,setAuthed]=useState(false);
-  const [user,setUser]=useState(null);
-  const [role,setRole]=useState(null);
+  const [authed,setAuthed]=useState(()=>!!ls.get("eb_user"));
+  const [user,setUser]=useState(()=>ls.get("eb_user"));
+  const [role,setRole]=useState(()=>ls.get("eb_role"));
   const [page,setPage]=useState("dashboard");
   const [toastMsg,setToastMsg]=useState("");
   const [cafes,setCafes]=useState([]);
@@ -1206,11 +1207,11 @@ function App() {
     if(role==="admin" && !["dashboard","inventory","analytics","admin"].includes(page)) setPage("dashboard");
   },[role]);
 
-  if(!authed) return <AuthScreen onAuth={u=>{setUser(u);setAuthed(true)}}/>;
-  if(!role) return <RoleSelect user={user} onPick={r=>{setRole(r);setPage("dashboard");sb.from("users").update({role:r}).eq("user_id",user.user_id).then(()=>{})}}/>;
+  if(!authed) return <AuthScreen onAuth={u=>{ls.set("eb_user",u);setUser(u);setAuthed(true)}}/>;
+  if(!role) return <RoleSelect user={user} onPick={r=>{ls.set("eb_role",r);setRole(r);setPage("dashboard");sb.from("users").update({role:r}).eq("user_id",user.user_id).then(()=>{})}}/>;
 
-  const logout=()=>{setAuthed(false);setRole(null);setUser(null);};
-  const changeRole=()=>setRole(null);
+  const logout=()=>{ls.set("eb_user",null);ls.set("eb_role",null);setAuthed(false);setRole(null);setUser(null);};
+  const changeRole=()=>{ls.set("eb_role",null);setRole(null)};
 
   const renderPage=()=>{
     if(page==="dashboard") return <Dashboard stats={stats} logs={logs} setPage={setPage}/>;
